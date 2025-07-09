@@ -1,0 +1,24 @@
+{
+  "name": "saferide-backend",
+  "version": "1.0.0",
+  "description": "Making ride-hailing safer for everyone through innovative technology and comprehensive safety features",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SafeRideMVP/SafeRide-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SafeRideMVP/SafeRide-backend/issues"
+  },
+  "homepage": "https://github.com/SafeRideMVP/SafeRide-backend#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
