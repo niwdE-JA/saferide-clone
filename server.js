@@ -13,12 +13,12 @@ app.use('/api', apiRouter)
 
 
 apiRouter.get('/', (req, res) => {
-  // Send a simple text response
+  // simple text response
   res.send('Hello, World! Welcome to your Express backend!');
 });
 
 apiRouter.get('/login', (req, res) => {
-  // Send a JSON response
+  // Simple JSON response
   res.json({
     message: 'This is some data from your API!',
     timestamp: new Date().toISOString(),

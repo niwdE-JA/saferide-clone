@@ -4,6 +4,7 @@
   "description": "Making ride-hailing safer for everyone through innovative technology and comprehensive safety features",
   "scripts": {
     "start": "node server.js",
+    "dev": "node --watch server",
     "lint": "",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
