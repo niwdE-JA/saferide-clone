@@ -1,13 +1,13 @@
-const express = require('express');
+import express, { Router, json } from 'express';
 
 const app = express();
-const apiRouter = express.Router()
+const apiRouter = Router()
 
 const PORT = process.env.PORT || 3000; // listening port
 
 
 // parse body to json
-app.use(express.json());
+app.use(json());
 // 
 app.use('/api', apiRouter)
 
@@ -31,4 +31,3 @@ apiRouter.get('/login', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
