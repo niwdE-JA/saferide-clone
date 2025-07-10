@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000; // listening port
 // parse body to json
 app.use(json());
 // 
-app.use('/api', apiRouter)
+app.use('/api/v1', apiRouter)
 
 
 apiRouter.get('/', (req, res) => {
