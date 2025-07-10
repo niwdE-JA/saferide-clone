@@ -50,7 +50,7 @@ const lastname_validator = body('lastname')
 
 
 
-app.post(
+apiRouter.post(
   '/signup',
   [ email_validator, password_validator, firstname_validator, lastname_validator ],
   (req, res) => {
@@ -64,7 +64,12 @@ app.post(
 
     // If validation passes, process the signup data
     const { email, password, firstname, lastname } = req.body;
-
+    
+    // In a real application, you would:
+    // 1. Hash the password (e.g., using bcrypt)
+    // 2. Save the user data to a database
+    // 3. Generate a JWT or session token for the user
+    // For this example, we'll just log the data and send a success message.
 
     console.log('Signup Data Received:');
     console.log(`Email: ${email}`);
