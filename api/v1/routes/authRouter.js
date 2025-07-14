@@ -1,12 +1,11 @@
-import { Router} from 'express';
+import { Router } from 'express';
 import { validationResult } from 'express-validator';
 import { email_validator, password_validator, firstname_validator, lastname_validator } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-// load jwt secret
-const JWT_SECRET = process.env.JWT_SECRET;
+import { FieldValue } from 'firebase-admin/firestore';
+import 'dotenv/config';
 
 const authRouter = Router()
 
@@ -29,11 +28,13 @@ authRouter.post(
     const { email, password, firstname, lastname } = req.body;
 
     try {
-      // Check if user already exists (by email)
+      const db = req.firestoreDatabase;
+      
       const usersRef = db.collection('users');
+
       const emailSnapshot = await usersRef.where('email', '==', email).get();
 
-      if (!emailSnapshot.empty) {
+      if (!emailSnapshot.empty) { // Check if user already exists (by email)
         return res.status(409).json({ message: 'User with this email already exists.' });
       }
 
@@ -48,7 +49,7 @@ authRouter.post(
         lastname: lastname,
         email: email,
         password: hashedPassword,
-        createdAt: admin.firestore.FieldValue.serverTimestamp() // Timestamp for creation
+        createdAt: FieldValue.serverTimestamp() // Timestamp for creation
       });
 
       // Get the ID of the newly created user document
