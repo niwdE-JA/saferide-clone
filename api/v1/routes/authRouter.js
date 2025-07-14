@@ -7,12 +7,8 @@ import jwt from 'jsonwebtoken';
 import { FieldValue } from 'firebase-admin/firestore';
 import 'dotenv/config';
 
-const authRouter = Router()
-
-authRouter.get('/', (req, res) => {
-  // simple text response
-  res.send('Hello, World! Welcome to your Express backend!');
-});
+const authRouter = Router();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 
 authRouter.post(
@@ -82,7 +78,7 @@ authRouter.post(
 
 
 authRouter.post(
-  'login',
+  '/login',
   [ email_validator, password_validator ],
   async (req, res) => {
     // Check for validation errors
@@ -94,13 +90,15 @@ authRouter.post(
     const { email, password } = req.body;
 
     try {
+      const db = req.firestoreDatabase;
+
       // Find user by email in Firestore
       const usersRef = db.collection('users');
       const userSnapshot = await usersRef.where('email', '==', email).limit(1).get();
 
       if (userSnapshot.empty) {
         // User not found
-        return res.status(401).json({ message: 'Invalid credentials.' });
+        return res.status(404).json({ message: 'No user found with given credentials.' });
       }
 
       // Get user data and document ID
@@ -113,7 +111,7 @@ authRouter.post(
 
       if (!isMatch) {
         // Passwords do not match
-        return res.status(401).json({ message: 'Invalid credentials.' });
+        return res.status(401).json({ message: 'Invalid login credentials.' });
       }
 
       // Generate a JWT for the authenticated user
