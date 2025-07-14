@@ -32,20 +32,27 @@ userRouter.put(
       .isArray({ max: 3 }).withMessage('Emergency contacts must be an array with a maximum of 3 entries.'),
 
     // Validate each contact object within the array
-    // emergencyContacts.*.name
-    body('contacts.*.name')
+    // contacts.*.firstname
+    body('contacts.*.firstname')
       .trim()
-      .notEmpty().withMessage('Contact name is required.')
-      .isString().withMessage('Contact name must be a string.'),
+      .notEmpty().withMessage('Contact firstname is required.')
+      .isString().withMessage('Contact firstname must be a string.'),
+    
+    // Validate each contact object within the array
+    // contacts.*.lastname
+    body('contacts.*.lastname')
+      .trim()
+      .notEmpty().withMessage('Contact lastname is required.')
+      .isString().withMessage('Contact lastname must be a string.'),
 
-    // emergencyContacts.*.phoneNumber
+    // contacts.*.phoneNumber
     body('contacts.*.phoneNumber')
         .trim()
         .notEmpty().withMessage('Contact phone number is required.')
         // Custom validation using the E.164 regex
         .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).'),
     
-    // emergencyContacts.*.email (optional)
+    // contacts.*.email (optional)
     body('contacts.*.email')
       .optional({ checkFalsy: true }) // Allows empty string or null/undefined
       .isEmail().withMessage('Invalid email format for contact.')
@@ -85,7 +92,6 @@ userRouter.put(
     }
   }
 );
-
 
 
 export default userRouter;
