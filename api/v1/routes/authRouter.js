@@ -80,4 +80,66 @@ authRouter.post(
   }
 );
 
+
+authRouter.post(
+  'login',
+  [ email_validator, password_validator ],
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    try {
+      // Find user by email in Firestore
+      const usersRef = db.collection('users');
+      const userSnapshot = await usersRef.where('email', '==', email).limit(1).get();
+
+      if (userSnapshot.empty) {
+        // User not found
+        return res.status(401).json({ message: 'Invalid credentials.' });
+      }
+
+      // Get user data and document ID
+      const userData = userSnapshot.docs[0].data();
+      const userId = userSnapshot.docs[0].id;
+      const hashedPassword = userData.password;
+
+      // Compare provided password with hashed password
+      const isMatch = await bcrypt.compare(password, hashedPassword);
+
+      if (!isMatch) {
+        // Passwords do not match
+        return res.status(401).json({ message: 'Invalid credentials.' });
+      }
+
+      // Generate a JWT for the authenticated user
+      const token = jwt.sign(
+        { userId: userId, email: email },
+        JWT_SECRET,
+        { expiresIn: '1h' } // Token expires in 1 hour
+      );
+
+      // Send success response with the JWT
+      res.status(200).json({
+        message: 'Logged in successfully!',
+        token: token,
+        user: {
+          firstname: userData.firstname,
+          lastname: userData.lastname,
+          email: userData.email
+        }
+      });
+
+    } catch (error) {
+      console.error('Error during login:', error);
+      res.status(500).json({ message: 'Server error during login.', error: error.message });
+    }
+  }
+);
+
+
 export default authRouter;
