@@ -140,4 +140,26 @@ authRouter.post(
 );
 
 
+// --- Authentication Middleware ---
+export const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  // Token format: Bearer <TOKEN>
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) {
+    return res.status(401).json({ message: 'Authentication token required.' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error('JWT verification failed:', err.message);
+      return res.status(403).json({ message: 'Invalid or expired token.' });
+    }
+    
+    req.user = user; // Attach user payload to request
+    next(); // Proceed to the next middleware/route handler
+  });
+};
+
+
 export default authRouter;
