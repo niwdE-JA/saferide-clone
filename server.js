@@ -1,8 +1,6 @@
 import express, { json } from 'express';
 import apiRouter  from './api/v1/apiRouter.js';
 import admin from 'firebase-admin';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
 const app = express();
@@ -35,6 +33,11 @@ try {
 }
 
 const db = admin.firestore(); // Get a Firestore instance
+
+app.use((req,res,next)=>{
+    req.firestoreDatabase = db;
+    next()
+})
 
 // parse body to json
 app.use(json());
