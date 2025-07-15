@@ -11,8 +11,6 @@ import { authenticateToken } from './authRouter.js';
 const userRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Define the E.164 regex
-const e164Regex = /^\+[1-9]\d{1,14}$/;
 
 // middleware for comparing userid in params and jwt
 function authorizeUserParams(req, res, next){
