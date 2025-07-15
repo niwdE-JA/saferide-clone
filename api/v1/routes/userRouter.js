@@ -54,7 +54,7 @@ userRouter.put(
     
     // contacts.*.email (optional)
     body('contacts.*.email')
-      .optional({ checkFalsy: true }) // Allows empty string or null/undefined
+      .optional({ checkFalsy: true })
       .isEmail().withMessage('Invalid email format for contact.')
       .normalizeEmail(),
   ],
@@ -65,8 +65,8 @@ userRouter.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { userId } = req.params; // User ID from URL parameter
-    const { contacts } = req.body; // Array of contacts from request body
+    const { userId } = req.params;
+    const { contacts } = req.body;
 
     try {
       const db = req.firestoreDatabase;
@@ -108,29 +108,33 @@ userRouter.put(
       return true;
     }),
 
-    // Validate 'contacts' array
-    body('contacts')
-      .isArray({ max: 3 }).withMessage('Emergency contacts must be an array with a maximum of 3 entries.'),
+    // Validate dashcam option
+    body('dashcam')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('Dashcam field must be a boolean (true or false).'),
 
-    // Validate each contact object within the array
-    // emergencyContacts.*.name
-    body('contacts.*.name')
-      .trim()
-      .notEmpty().withMessage('Contact name is required.')
-      .isString().withMessage('Contact name must be a string.'),
-
-    // emergencyContacts.*.phoneNumber
-    body('contacts.*.phoneNumber')
-        .trim()
-        .notEmpty().withMessage('Contact phone number is required.')
-        // Custom validation using the E.164 regex
-        .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).'),
+    // Validate cloudUploads option
+    body('cloudUpload')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('CloudUpload field must be a boolean (true or false).'),
     
-    // emergencyContacts.*.email (optional)
-    body('contacts.*.email')
-      .optional({ checkFalsy: true }) // Allows empty string or null/undefined
-      .isEmail().withMessage('Invalid email format for contact.')
-      .normalizeEmail(),
+    // Validate emergencyAlerts option
+    body('emergencyAlerts')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('emergencyAlerts field must be a boolean (true or false).'),
+    
+    // Validate dashcam option
+    body('driverVerification')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('driverVerification field must be a boolean (true or false).'),
   ],
 
   async (req, res) => {
@@ -139,32 +143,40 @@ userRouter.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { userId } = req.params; // User ID from URL parameter
-    const { contacts } = req.body; // Array of contacts from request body
+    const { userId } = req.params;
+    const { dashcam, cloudUpload, emergencyAlerts, driverVerification } = req.body;
+
+    const updates = { dashcam, cloudUpload, emergencyAlerts, driverVerification }
 
     try {
       const db = req.firestoreDatabase;
 
-      // Get a reference to the user's document
+      // Get a reference to the user's document, and assert existence
       const userDocRef = db.collection('users').doc(userId);
-
-      // Check if the user document exists
       const userDoc = await userDocRef.get();
       if (!userDoc.exists) {
         return res.status(404).json({ message: 'User not found.' });
       }
 
-      // Update the emergencyContacts field in Firestore
-      await userDocRef.update({ contacts: contacts });
+      // get reference to preference doc under User, and assert existence
+      const preferencesDocRef = userDocRef.collection('preferences').doc('preferences');
+      const preferenceDocSnapshot = await preferencesDocRef.get();
 
-      res.status(200).json({
-        message: 'Emergency contacts updated successfully!',
-        contacts: emergencyContacts
-      });
+      if (preferenceDocSnapshot.exists) {
+        await preferencesDocRef.update(updates);
+        
+        console.log(`Preferences document updated for user: ${userId}`);
+        res.status(200).json({ message: 'User Preferences updated successfully!' });
+      } else {
+        console.warn(`Preferences document for user ${userId} does not exist. Creating it.`);
 
+        await preferencesDocRef.set(updates);
+        console.log(`Preferences document created and updated for user: ${userId}`);
+        res.status(200).json({ message: 'User Preferences updated successfully!' });
+      };
     } catch (error) {
-      console.error('Error updating emergency contacts:', error);
-      res.status(500).json({ message: 'Server error updating emergency contacts.', error: error.message });
+      console.error('Error updating user preferences :', error);
+      res.status(500).json({ message: 'Server error updating user preferences.', error: error.message });
     }
   }
 );
