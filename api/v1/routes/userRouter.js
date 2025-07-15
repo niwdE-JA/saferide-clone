@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator, guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator } from '../utils/validators.js';
+import { email_validator, password_validator, firstname_validator, lastname_validator, guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -78,33 +78,10 @@ userRouter.put(
   authenticateToken, // Protect this route with JWT authentication
   authorizeUserParams,
   [
-    // Validate dashcam option
-    body('dashcam')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('Dashcam field must be a boolean (true or false).'),
-
-    // Validate cloudUploads option
-    body('cloudUpload')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('CloudUpload field must be a boolean (true or false).'),
-    
-    // Validate emergencyAlerts option
-    body('emergencyAlerts')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('emergencyAlerts field must be a boolean (true or false).'),
-    
-    // Validate dashcam option
-    body('driverVerification')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('driverVerification field must be a boolean (true or false).'),
+    getOptionalBooleanValidator('dashcam'),
+    getOptionalBooleanValidator('cloudUpload'),
+    getOptionalBooleanValidator('emergencyAlerts'),
+    getOptionalBooleanValidator('driverVerification'),
   ],
 
   async (req, res) => {
@@ -157,26 +134,9 @@ userRouter.put(
   authenticateToken, // Protect this route with JWT authentication
   authorizeUserParams,
   [
-    // Validate dataSharing option
-    body('dataSharing')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('DataSharing field must be a boolean (true or false).'),
-
-    // Validate videoRetention option
-    body('videoRetention')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('videoRetention field must be a boolean (true or false).'),
-    
-    // Validate nightMode option
-    body('nightMode')
-        .optional({ checkFalsy: true })
-        .toBoolean()
-        .isBoolean()
-        .withMessage('nightMode field must be a boolean (true or false).'),
+    getOptionalBooleanValidator('dataSharing'),
+    getOptionalBooleanValidator('videoRetention'),
+    getOptionalBooleanValidator('nightMode'),
   ],
 
   async (req, res) => {

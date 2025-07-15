@@ -45,3 +45,11 @@ export const guardian_email_validator = body('guardians.*.email')
       .optional({ checkFalsy: true })
       .isEmail().withMessage('Invalid email format for contact.')
       .normalizeEmail()
+
+export function getOptionalBooleanValidator(fieldName){
+    return body(`${fieldName}`)
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage(`${fieldName} field must be a boolean (true or false).`)
+}
