@@ -14,19 +14,21 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;
 
+// middleware for comparing userid in params and jwt
+function authorizeUserParams(req, res, next){
+    if (req.params.userId !== req.user.userId) {
+        return res.status(403).json({message: "Unauthorized: You can only access resources for your own User ID."});
+    }
+
+    next();
+}
+ 
 // --- Protected Route: Update Guardians ---
 userRouter.put(
   '/:userId/guardians',
   authenticateToken, // Protect this route with JWT authentication
+  authorizeUserParams,
   [
-    // Validate that the userId in the URL matches the authenticated user's ID
-    param('userId').custom((value, { req }) => {
-      if (value !== req.user.userId) {
-        throw new Error('Unauthorized: You can only update your own Guardians.');
-      }
-      return true;
-    }),
-
     // Validate 'guardians' array
     body('guardians')
       .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.'),
@@ -99,15 +101,8 @@ userRouter.put(
 userRouter.put(
   '/:userId/preferences',
   authenticateToken, // Protect this route with JWT authentication
+  authorizeUserParams,
   [
-    // Validate that the userId in the URL matches the authenticated user's ID
-    param('userId').custom((value, { req }) => {
-      if (value !== req.user.userId) {
-        throw new Error('Unauthorized: You can only update your own emergency contacts.');
-      }
-      return true;
-    }),
-
     // Validate dashcam option
     body('dashcam')
         .optional({ checkFalsy: true })
@@ -185,15 +180,8 @@ userRouter.put(
 userRouter.put(
   '/:userId/privacy_config',
   authenticateToken, // Protect this route with JWT authentication
+  authorizeUserParams,
   [
-    // Validate that the userId in the URL matches the authenticated user's ID
-    param('userId').custom((value, { req }) => {
-      if (value !== req.user.userId) {
-        throw new Error('Unauthorized: You can only update your own emergency contacts.');
-      }
-      return true;
-    }),
-
     // Validate dataSharing option
     body('dataSharing')
         .optional({ checkFalsy: true })
