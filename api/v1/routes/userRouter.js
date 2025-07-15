@@ -181,6 +181,84 @@ userRouter.put(
   }
 );
 
+// --- Protected Route: Update user privacy configs ---
+userRouter.put(
+  '/:userId/privacy_config',
+  authenticateToken, // Protect this route with JWT authentication
+  [
+    // Validate that the userId in the URL matches the authenticated user's ID
+    param('userId').custom((value, { req }) => {
+      if (value !== req.user.userId) {
+        throw new Error('Unauthorized: You can only update your own emergency contacts.');
+      }
+      return true;
+    }),
+
+    // Validate dataSharing option
+    body('dataSharing')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('DataSharing field must be a boolean (true or false).'),
+
+    // Validate videoRetention option
+    body('videoRetention')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('videoRetention field must be a boolean (true or false).'),
+    
+    // Validate nightMode option
+    body('nightMode')
+        .optional({ checkFalsy: true })
+        .toBoolean()
+        .isBoolean()
+        .withMessage('nightMode field must be a boolean (true or false).'),
+  ],
+
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { userId } = req.params;
+    const { dataSharing, videoRetention, nightMode } = req.body;
+
+    const updates = { dataSharing, videoRetention, nightMode };
+
+    try {
+      const db = req.firestoreDatabase;
+
+      // Get a reference to the user's document, and assert existence
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // get reference to privacy_config doc under User, and assert existence
+      const privacyConfigDocRef = userDocRef.collection('privacy_config').doc('privacy_config');
+      const privacyConfigDocSnapshot = await privacyConfigDocRef.get();
+
+      if (privacyConfigDocSnapshot.exists) {
+        await privacyConfigDocRef.update(updates);
+        
+        console.log(`'privacy_config' document updated for user: ${userId}`);
+        res.status(200).json({ message: 'User Privacy Configs updated successfully!' });
+      } else {
+        console.warn(`'privacy_config' document for user ${userId} does not exist. Creating it.`);
+
+        await preferencesDocRef.set(updates);
+        console.log(`Preferences document created and updated for user: ${userId}`);
+        res.status(200).json({ message: 'User Privacy Configs updated successfully!' });
+      };
+    } catch (error) {
+      console.error('Error updating user privacy configs :', error);
+      res.status(500).json({ message: 'Server error updating user privacy configs.', error: error.message });
+    }
+  }
+);
 
 
 
