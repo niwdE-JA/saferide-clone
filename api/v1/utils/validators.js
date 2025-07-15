@@ -19,3 +19,29 @@ export const lastname_validator = body('lastname')
       .trim()
       .notEmpty().withMessage('Last name is required.')
     //   .isLength({ min: 3, max: 20 }).withMessage('Last name must be between 3 and 20 characters.')
+
+
+
+export const guardian_array_count_validator = body('guardians')
+      .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.')
+
+export const guardian_firstname_validator = body('guardians.*.firstname')
+      .trim()
+      .notEmpty().withMessage('Contact firstname is required.')
+      .isString().withMessage('Contact firstname must be a string.')
+
+export const guardian_lastname_validator = body('guardians.*.lastname')
+      .trim()
+      .notEmpty().withMessage('Contact lastname is required.')
+      .isString().withMessage('Contact lastname must be a string.')
+
+export const guardian_phone_validator = body('guardians.*.phoneNumber')
+        .trim()
+        .notEmpty().withMessage('Contact phone number is required.')
+        // Custom validation using the E.164 regex
+        .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).')
+
+export const guardian_email_validator = body('guardians.*.email')
+      .optional({ checkFalsy: true })
+      .isEmail().withMessage('Invalid email format for contact.')
+      .normalizeEmail()

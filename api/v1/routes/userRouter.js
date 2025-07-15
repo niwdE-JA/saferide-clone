@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator } from '../utils/validators.js';
+import { email_validator, password_validator, firstname_validator, lastname_validator, guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -29,36 +29,11 @@ userRouter.put(
   authenticateToken, // Protect this route with JWT authentication
   authorizeUserParams,
   [
-    // Validate 'guardians' array
-    body('guardians')
-      .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.'),
-
-    // Validate each contact object within the array
-    // guardians.*.firstname
-    body('guardians.*.firstname')
-      .trim()
-      .notEmpty().withMessage('Contact firstname is required.')
-      .isString().withMessage('Contact firstname must be a string.'),
-    
-    // Validate each contact object within the array
-    // guardians.*.lastname
-    body('guardians.*.lastname')
-      .trim()
-      .notEmpty().withMessage('Contact lastname is required.')
-      .isString().withMessage('Contact lastname must be a string.'),
-
-    // guardians.*.phoneNumber
-    body('guardians.*.phoneNumber')
-        .trim()
-        .notEmpty().withMessage('Contact phone number is required.')
-        // Custom validation using the E.164 regex
-        .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).'),
-    
-    // guardians.*.email (optional)
-    body('guardians.*.email')
-      .optional({ checkFalsy: true })
-      .isEmail().withMessage('Invalid email format for contact.')
-      .normalizeEmail(),
+    guardian_array_count_validator,
+    guardian_firstname_validator,
+    guardian_lastname_validator,
+    guardian_phone_validator,
+    guardian_email_validator,
   ],
 
   async (req, res) => {
