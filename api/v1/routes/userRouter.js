@@ -14,46 +14,46 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;
 
-// --- Protected Route: Update Emergency Contacts ---
+// --- Protected Route: Update Guardians ---
 userRouter.put(
-  '/:userId/contacts',
+  '/:userId/guardians',
   authenticateToken, // Protect this route with JWT authentication
   [
     // Validate that the userId in the URL matches the authenticated user's ID
     param('userId').custom((value, { req }) => {
       if (value !== req.user.userId) {
-        throw new Error('Unauthorized: You can only update your own emergency contacts.');
+        throw new Error('Unauthorized: You can only update your own Guardians.');
       }
       return true;
     }),
 
-    // Validate 'contacts' array
-    body('contacts')
-      .isArray({ max: 3 }).withMessage('Emergency contacts must be an array with a maximum of 3 entries.'),
+    // Validate 'guardians' array
+    body('guardians')
+      .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.'),
 
     // Validate each contact object within the array
-    // contacts.*.firstname
-    body('contacts.*.firstname')
+    // guardians.*.firstname
+    body('guardians.*.firstname')
       .trim()
       .notEmpty().withMessage('Contact firstname is required.')
       .isString().withMessage('Contact firstname must be a string.'),
     
     // Validate each contact object within the array
-    // contacts.*.lastname
-    body('contacts.*.lastname')
+    // guardians.*.lastname
+    body('guardians.*.lastname')
       .trim()
       .notEmpty().withMessage('Contact lastname is required.')
       .isString().withMessage('Contact lastname must be a string.'),
 
-    // contacts.*.phoneNumber
-    body('contacts.*.phoneNumber')
+    // guardians.*.phoneNumber
+    body('guardians.*.phoneNumber')
         .trim()
         .notEmpty().withMessage('Contact phone number is required.')
         // Custom validation using the E.164 regex
         .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).'),
     
-    // contacts.*.email (optional)
-    body('contacts.*.email')
+    // guardians.*.email (optional)
+    body('guardians.*.email')
       .optional({ checkFalsy: true })
       .isEmail().withMessage('Invalid email format for contact.')
       .normalizeEmail(),
@@ -66,7 +66,7 @@ userRouter.put(
     }
 
     const { userId } = req.params;
-    const { contacts } = req.body;
+    const { guardians } = req.body;
 
     try {
       const db = req.firestoreDatabase;
@@ -80,12 +80,12 @@ userRouter.put(
         return res.status(404).json({ message: 'User not found.' });
       }
 
-      // Update the emergencyContacts field in Firestore
-      await userDocRef.update({ contacts: contacts });
+      // Update the guardians field in Firestore
+      await userDocRef.update({ guardians: guardians });
 
       res.status(200).json({
-        message: 'Emergency contacts updated successfully!',
-        contacts: emergencyContacts
+        message: 'Guardians updated successfully!',
+        guardians,
       });
 
     } catch (error) {
@@ -180,6 +180,7 @@ userRouter.put(
     }
   }
 );
+
 
 
 
