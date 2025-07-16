@@ -38,7 +38,7 @@ export const guardian_lastname_validator = body('guardians.*.lastname')
 
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;
-export const guardian_phone_validator = body('guardians.*.phoneNumber')
+export const guardian_phone_validator = body('guardians.*.phone')
         .trim()
         .notEmpty().withMessage('Contact phone number is required.')
         // Custom validation using the E.164 regex
