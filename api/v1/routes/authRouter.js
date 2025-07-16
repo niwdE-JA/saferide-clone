@@ -4,11 +4,27 @@ import { email_validator, password_validator, firstname_validator, lastname_vali
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import 'dotenv/config';
 
 const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
+const _5_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
+
+
+function generateOTP (digits = 6) { // default number of digits is 6
+  max_num = (10^digits) - 1;
+  return Math.floor(Math.random() * max_num).toString().padStart(digits);
+};
+
+function sendOTP (otp, email) {
+  console.log(`--- SIMULATED OTP SENT ---`);
+  console.log(`To: ${email}`);
+  console.log(`OTP: ${otp}`);
+  console.log(`This otp would expire in "duration"`);
+  console.log(`--------------------------`);
+}
+
 
 
 authRouter.post(
@@ -115,28 +131,91 @@ authRouter.post(
         return res.status(401).json({ message: 'Invalid login credentials.' });
       }
 
-      // Generate a JWT for the authenticated user
-      const token = jwt.sign(
-        { userId: userId, email: email },
-        JWT_SECRET,
-        { expiresIn: '1h' } // Token expires in 1 hour
-      );
+      // OTP Generation and Storage
+      const otp = generateOTP();
+      const otpExpiry = new Date(Date.now() + _5_MINUTES_IN_MILLISECONDS); // OTP valid for 5 minutes
 
-      // Send success response with the JWT
+      await usersRef.doc(userId).update({
+        otp: otp,
+        otpExpiry: Timestamp.fromDate(otpExpiry)
+      });
+    
+      sendOTP(otp);
+
       res.status(200).json({
-        message: 'Logged in successfully!',
-        token: token,
-        user: {
-          userId,
-          firstname: userData.firstname,
-          lastname: userData.lastname,
-          email: userData.email
-        }
+        message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
+        userId: userId
       });
 
     } catch (error) {
       console.error('Error during login:', error);
       res.status(500).json({ message: 'Server error during login.', error: error.message });
+    }
+  }
+);
+
+authRouter.post(
+  '/verify-otp',
+  [
+    body('userId').notEmpty().withMessage('User ID is required.'),
+    body('otp').notEmpty().withMessage('OTP is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { userId, otp } = req.body;
+
+    try {
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      const userData = userDoc.data();
+      const storedOtp = userData.otp;
+      const storedOtpExpiry = userData.otpExpiry?.toDate();
+
+      // Check if OTP exists and is not expired
+      if (!storedOtp || storedOtp !== otp || !storedOtpExpiry || storedOtpExpiry < new Date()) {
+        // Clear OTP immediately if invalid or expired to prevent brute-force
+        await userDocRef.update({
+            otp: FieldValue.delete(),
+            otpExpiry: FieldValue.delete()
+        });
+        return res.status(401).json({ message: 'Invalid or expired OTP.' });
+      }
+
+      // OTP is valid and not expired, so issue JWT
+      const token = jwt.sign(
+        { userId: userId, email: userData.email },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Clear OTP from Firestore after successful verification
+      await userDocRef.update({
+        otp: FieldValue.delete(),
+        otpExpiry: FieldValue.delete()
+      });
+
+      res.status(200).json({
+        message: 'OTP verified successfully! Logged in.',
+        token: token,
+        user: {
+          userId: userId,
+          username: userData.username,
+          email: userData.email
+        }
+      });
+
+    } catch (error) {
+      console.error('Error during OTP verification:', error);
+      res.status(500).json({ message: 'Server error during OTP verification.', error: error.message });
     }
   }
 );
