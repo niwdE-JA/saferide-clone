@@ -64,6 +64,7 @@ authRouter.post(
         userId: userId,
         token: token,
         user: {
+          userId,
           username: username,
           email: email
         }

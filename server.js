@@ -15,7 +15,6 @@ try {
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   };
 
-//   console.log(firebaseConfig)
 
   // Check if all necessary Firebase config variables are set
   if (!firebaseConfig.projectId || !firebaseConfig.privateKey || !firebaseConfig.clientEmail) {
