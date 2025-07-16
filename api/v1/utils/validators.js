@@ -27,20 +27,20 @@ export const guardian_array_count_validator = body('guardians')
 
 export const guardian_firstname_validator = body('guardians.*.firstname')
       .trim()
-      .notEmpty().withMessage('Contact firstname is required.')
-      .isString().withMessage('Contact firstname must be a string.')
+      .notEmpty().withMessage('Guardian firstname is required.')
+      .isString().withMessage('Guardian firstname must be a string.')
 
 export const guardian_lastname_validator = body('guardians.*.lastname')
       .trim()
-      .notEmpty().withMessage('Contact lastname is required.')
-      .isString().withMessage('Contact lastname must be a string.')
+      .notEmpty().withMessage('Guardian lastname is required.')
+      .isString().withMessage('Guardian lastname must be a string.')
 
 
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;
 export const guardian_phone_validator = body('guardians.*.phone')
         .trim()
-        .notEmpty().withMessage('Contact phone number is required.')
+        .notEmpty().withMessage('Guardian phone number is required.')
         // Custom validation using the E.164 regex
         .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).')
 
