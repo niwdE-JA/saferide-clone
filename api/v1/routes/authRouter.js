@@ -126,6 +126,7 @@ authRouter.post(
         message: 'Logged in successfully!',
         token: token,
         user: {
+          userId,
           firstname: userData.firstname,
           lastname: userData.lastname,
           email: userData.email
