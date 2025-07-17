@@ -170,7 +170,7 @@ userRouter.put(
       } else {
         console.warn(`'privacy_config' document for user ${userId} does not exist. Creating it.`);
 
-        await preferencesDocRef.set(updates);
+        await privacyConfigDocRef.set(updates);
         console.log(`Preferences document created and updated for user: ${userId}`);
         res.status(200).json({ message: 'User Privacy Configs updated successfully!' });
       };
