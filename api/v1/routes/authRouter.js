@@ -221,11 +221,11 @@ authRouter.post(
 
       // Check if OTP exists and is not expired
       if (!storedOtp || storedOtp !== otp || !storedOtpExpiry || storedOtpExpiry < new Date()) {
-        // Clear OTP immediately if invalid or expired to prevent brute-force
-        await userDocRef.update({
-            otp: FieldValue.delete(),
-            otpExpiry: FieldValue.delete()
-        });
+        // // Clear OTP immediately if invalid or expired to prevent brute-force
+        // await userDocRef.update({
+        //     otp: FieldValue.delete(),
+        //     otpExpiry: FieldValue.delete()
+        // });
         return res.status(401).json({ message: 'Invalid or expired OTP.' });
       }
 
