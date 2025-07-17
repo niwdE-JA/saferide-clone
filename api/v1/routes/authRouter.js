@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator } from '../utils/validators.js';
+import { email_validator, password_validator, firstname_validator, lastname_validator, userId_validator, otp_validtor } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -192,8 +192,8 @@ authRouter.post(
 authRouter.post(
   '/verify-otp',
   [
-    body('userId').notEmpty().withMessage('User ID is required.'),
-    body('otp').notEmpty().withMessage('OTP is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
+    userId_validator,
+    otp_validtor
   ],
   async (req, res) => {
     const errors = validationResult(req);

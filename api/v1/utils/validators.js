@@ -20,6 +20,8 @@ export const lastname_validator = body('lastname')
       .notEmpty().withMessage('Last name is required.')
     //   .isLength({ min: 3, max: 20 }).withMessage('Last name must be between 3 and 20 characters.')
 
+export const userId_validator = body('userId').notEmpty().withMessage('User ID is required.')
+export const otp_validtor = body('otp').notEmpty().withMessage('OTP is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
 
 
 export const guardian_array_count_validator = body('guardians')
