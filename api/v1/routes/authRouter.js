@@ -10,6 +10,7 @@ import 'dotenv/config';
 const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 const _5_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
+const OTP_DURATION = _5_MINUTES_IN_MILLISECONDS;
 
 
 function generateOTP (digits = 6) { // default number of digits is 6
@@ -17,11 +18,11 @@ function generateOTP (digits = 6) { // default number of digits is 6
   return Math.floor(Math.random() * max_num).toString().padStart(digits);
 };
 
-function sendOTP (otp, email) {
+function sendOTP (otp, email, otp_duration) {
   console.log(`--- SIMULATED OTP SENT ---`);
   console.log(`To: ${email}`);
   console.log(`OTP: ${otp}`);
-  console.log(`This otp would expire in "duration"`);
+  console.log(`This otp would expire in ${otp_duration/60000} minutes.`);
   console.log(`--------------------------`);
 }
 
@@ -55,35 +56,30 @@ authRouter.post(
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedPassword = await bcrypt.hash(password, salt); // Hash the password with the salt
 
+      // OTP Generation
+      const otp = generateOTP();
+      const otpExpiry = new Date(Date.now() + OTP_DURATION); // OTP valid for 5 minutes
+
       // Store the new user in Firestore
       const newUserRef = await usersRef.add({
         firstname: firstname,
         lastname: lastname,
         email: email,
         password: hashedPassword,
-        createdAt: FieldValue.serverTimestamp() // Timestamp for creation
+        createdAt: FieldValue.serverTimestamp(), // Timestamp for creation
+        otp: otp,
+        otpExpiry: Timestamp.fromDate(otpExpiry)
+
       });
 
       // Get the ID of the newly created user document
       const userId = newUserRef.id;
+    
+      sendOTP(otp, email, OTP_DURATION);
 
-      // Generate a JWT
-      const token = jwt.sign(
-        { userId: userId, email: email },
-        JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-
-      // Send success response with the JWT
-      res.status(201).json({
-        message: 'User signed up successfully!',
-        userId: userId,
-        token: token,
-        user: {
-          userId,
-          username: username,
-          email: email
-        }
+      res.status(200).json({
+        message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
+        userId: userId
       });
 
     } catch (error) {
@@ -133,14 +129,14 @@ authRouter.post(
 
       // OTP Generation and Storage
       const otp = generateOTP();
-      const otpExpiry = new Date(Date.now() + _5_MINUTES_IN_MILLISECONDS); // OTP valid for 5 minutes
+      const otpExpiry = new Date(Date.now() + OTP_DURATION); // OTP valid for 5 minutes
 
       await usersRef.doc(userId).update({
         otp: otp,
         otpExpiry: Timestamp.fromDate(otpExpiry)
       });
     
-      sendOTP(otp);
+      sendOTP(otp, email, OTP_DURATION);
 
       res.status(200).json({
         message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
