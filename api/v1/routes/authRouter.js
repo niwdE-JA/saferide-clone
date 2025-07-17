@@ -6,6 +6,15 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import 'dotenv/config';
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SENDER_EMAIL,
+        pass: process.env.SENDER_EMAIL_PASSWORD
+    }
+});
 
 const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -18,14 +27,44 @@ function generateOTP (digits = 6) { // default number of digits is 6
   return Math.floor(Math.random() * max_num).toString().padStart(digits);
 };
 
-function sendOTP (otp, email, otp_duration) {
-  console.log(`--- SIMULATED OTP SENT ---`);
-  console.log(`To: ${email}`);
-  console.log(`OTP: ${otp}`);
-  console.log(`This otp would expire in ${otp_duration/60000} minutes.`);
-  console.log(`--------------------------`);
-}
+async function sendOTP (otp, email, otp_duration) {
+    // Calculate expiration time in minutes for the email message
+    const durationMinutes = otp_duration / 60000;
 
+    // Define the email content
+    const mailOptions = {
+        from: `"SafeRide" <${process.env.SENDER_EMAIL}>`,
+        to: email,
+        subject: 'Your One-Time Password (OTP) for Verification',
+        html: `
+            <p>Hello,</p>
+            <p>Your One-Time Password (OTP) for verification is:</p>
+            <h2 style="color: #007bff;">${otp}</h2>
+            <p>This OTP is valid for ${durationMinutes} minutes. Please do not share it with anyone.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            <p>Thanks,<br>SafeRide Team</p>
+        `,
+        text: `Your One-Time Password (OTP) for verification is: ${otp}. This OTP is valid for ${durationMinutes} minutes. Please do not share it with anyone. If you did not request this, please ignore this email. Thanks, SafeRide Team`,
+    };
+
+    try {
+        // Send the email
+        let info = await transporter.sendMail(mailOptions);
+        console.log(`--- OTP SENT VIA EMAIL ---`);
+        console.log(`Message sent: %s`, info.messageId);
+        console.log(`Preview URL: %s`, nodemailer.getTestMessageUrl(info)); // Only available with Ethereal/Mailtrap for testing
+        console.log(`To: ${email}`);
+        console.log(`OTP: ${otp}`);
+        console.log(`Expiration: ${durationMinutes} minutes.`);
+        console.log(`--------------------------`);
+    } catch (error) {
+        console.error(`--- FAILED TO SEND OTP EMAIL ---`);
+        console.error(`Error sending email to ${email}:`, error);
+        console.error(`---------------------------------`);
+        throw new Error(`Error sending email to ${email}: \t ${error}`);
+        
+    }
+}
 
 
 authRouter.post(
