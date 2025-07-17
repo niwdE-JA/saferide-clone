@@ -23,8 +23,8 @@ const OTP_DURATION = _5_MINUTES_IN_MILLISECONDS;
 
 
 function generateOTP (digits = 6) { // default number of digits is 6
-  let max_num = (10^digits) - 1;
-  return Math.floor(Math.random() * max_num).toString().padStart(digits);
+  let max_num = (10**digits) - 1;
+  return Math.floor(Math.random() * max_num).toString().padStart(digits,'0');
 };
 
 async function sendOTP (otp, email, otp_duration) {
