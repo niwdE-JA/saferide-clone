@@ -43,6 +43,9 @@ app.use(json());
 // 
 app.use('/api/v1', apiRouter)
 
+app.get('/',(req,res)=>{
+  res.status(200).send("hello world");
+})
 
 // Run Server
 app.listen(PORT, () => {
