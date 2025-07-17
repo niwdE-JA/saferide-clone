@@ -118,7 +118,8 @@ authRouter.post(
 
       res.status(200).json({
         message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
-        userId: userId
+        userId: userId,
+        unverified: true
       });
 
     } catch (error) {
@@ -179,7 +180,8 @@ authRouter.post(
 
       res.status(200).json({
         message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
-        userId: userId
+        userId: userId,
+        unverified: true
       });
 
     } catch (error) {
