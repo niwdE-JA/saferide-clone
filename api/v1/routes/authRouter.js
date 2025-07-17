@@ -117,7 +117,7 @@ authRouter.post(
       sendOTP(otp, email, OTP_DURATION);
 
       res.status(200).json({
-        message: 'Login successful. OTP sent to your email. Please verify OTP to complete login.',
+        message: 'Signup successful. OTP sent to your email. Please verify OTP to complete login.',
         userId: userId,
         unverified: true
       });
