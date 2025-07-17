@@ -206,6 +206,8 @@ authRouter.post(
     const { userId, otp } = req.body;
 
     try {
+      const db = req.firestoreDatabase;
+      
       const userDocRef = db.collection('users').doc(userId);
       const userDoc = await userDocRef.get();
 
