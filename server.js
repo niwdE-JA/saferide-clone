@@ -1,6 +1,6 @@
 import express, { json } from 'express';
-// import apiRouter  from './api/v1/apiRouter.js';
-// import admin from 'firebase-admin';
+import apiRouter  from './api/v1/apiRouter.js';
+import admin from 'firebase-admin';
 import 'dotenv/config';
 
 const app = express();
