@@ -41,11 +41,10 @@ const PORT = process.env.PORT || 8080; // listening port
 // parse body to json
 app.use(json());
 // 
-app.use('/api/v1', apiRouter)
-
+// app.use('/api/v1', apiRouter)
 
 app.get('/',(req,res)=>{
-  console.log("recieved request at root route '/'")
+  console.log("recieved request")
   res.status(200).send("hello world");
 })
 
