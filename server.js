@@ -58,4 +58,4 @@ app.get('/',(req,res)=>{
 // });
 
 import serverless from 'serverless-http';
-module.exports.handler = serverless(app); // This is REQUIRED for Vercel
+export const handler = serverless(app); // This is REQUIRED for Vercel
