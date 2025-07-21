@@ -32,13 +32,42 @@ function generateResetToken() {
   return crypto.randomBytes(32).toString('hex'); // Generates a 64-character hex string
 };
 
-function sendResetOTP(email, resetToken, resetTokenExpiry, userId){
-  console.log(`--- SIMULATED PASSWORD RESET TOKEN SENT ---`);
-  console.log(`To: ${email}`);
-  console.log(`Reset Token: ${resetToken}`);
-  console.log(`Expiry: ${resetTokenExpiry}`);
-  console.log(`User ID for reset: ${userId}`); // User ID might be needed by client for /reset-password
-  console.log(`-------------------------------------------`);
+async function sendResetOTP(email, resetOTP, resetOTPExpiry, userId){
+  const expiryDate = new Date(resetOTPExpiry)
+
+  // Define the email content
+  const mailOptions = {
+      from: `"SafeRide" <${process.env.SENDER_EMAIL}>`,
+      to: email,
+      subject: 'Your One-Time Password (OTP) to Reset your Password',
+      html: `
+          <p>Hello,</p>
+          <p>Your One-Time Password (OTP) for Password Reset is:</p>
+          <h2 style="color: #007bff;">${resetOTP}</h2>
+          <p>This OTP is valid until ${expiryDate}. Please do not share it with anyone.</p>
+          <p>If you did not request this, please ignore this email.</p>
+          <p>Thanks,<br>SafeRide Team</p>
+      `,
+      text: `Your One-Time Password (OTP) for Password Reset is: ${resetOTP}. This OTP is valid until ${expiryDate}. Please do not share it with anyone. If you did not request this, please ignore this email. Thanks, SafeRide Team`,
+  };
+
+  try {
+        // Send the email
+        let info = await transporter.sendMail(mailOptions);
+        console.log(`--- OTP SENT VIA EMAIL ---`);
+        console.log(`Message sent: %s`, info.messageId);
+        console.log(`Preview URL: %s`, nodemailer.getTestMessageUrl(info)); // Only available with Ethereal/Mailtrap for testing
+        console.log(`To: ${email}`);
+        console.log(`OTP: ${resetOTP}`);
+        console.log(`Valid until: ${expiryDate}.`);
+        console.log(`--------------------------`);
+    } catch (error) {
+        console.error(`--- FAILED TO SEND OTP EMAIL ---`);
+        console.error(`Error sending email to ${email}:`, error);
+        console.error(`---------------------------------`);
+        throw new Error(`Error sending email to ${email}: \t ${error}`);
+        
+    }
 }
 
 async function sendOTP (otp, email, otp_duration) {
