@@ -25,7 +25,7 @@ export const lastname_validator = body('lastname')
 export const userId_validator = body('userId').notEmpty().withMessage('User ID is required.')
 
 export function get_otp_validator(fieldName){
-      return body(fieldName).notEmpty().withMessage(`${fieldName} is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.`)
+      return body(fieldName).notEmpty().withMessage(`${fieldName} is required.`).isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
 }
 
 export const guardian_array_count_validator = body('guardians')
