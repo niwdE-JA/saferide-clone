@@ -178,6 +178,40 @@ userRouter.put(
   }
 );
 
+// --- get user info ---
+userRouter.get(
+  '/user',
+  authenticateToken,
+  async (res, res) => {
+    const {userId} =  req.user
+
+    try {
+      const db = req.firestoreDatabase;
+
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      const { email, firstname, lastname, contact_method } = userDoc.data();
+      const userData = {
+        userId,
+        email,
+        firstname,
+        lastname,
+        contact_method
+      };
+
+      return res.status(200).json({message: 'User fetched successfully.', data: userData});
+    
+    } catch (error) {
+      console.error('Error fetching user :', error);
+      res.status(500).json({ message: 'Server error fetching user.', error: error.message });
+    }
+
+  }
+);
 
 
 export default userRouter;
