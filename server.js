@@ -53,9 +53,9 @@ app.get('/',(req,res)=>{
 })
 
 // Run Server
-// app.listen(PORT, () => {
-//   console.log(`Server is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 
-import serverless from 'serverless-http';
-export default serverless(app); // This is REQUIRED for Vercel
+// import serverless from 'serverless-http';
+// export default serverless(app); // This is REQUIRED for Vercel
