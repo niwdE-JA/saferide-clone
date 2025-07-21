@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator, userId_validator, otp_validtor } from '../utils/validators.js';
+import { email_validator, password_validator, firstname_validator, lastname_validator, userId_validator, otp_validtor, get_otp_validator, get_password_validator } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -83,7 +83,7 @@ async function sendOTP (otp, email, otp_duration) {
 
 authRouter.post(
   '/signup',
-  [ email_validator, password_validator, firstname_validator, lastname_validator ],
+  [ email_validator, get_password_validator('password'), firstname_validator, lastname_validator ],
   async (req, res) => {
     // Check for validation errors
     const errors = validationResult(req);
@@ -147,7 +147,7 @@ authRouter.post(
 
 authRouter.post(
   '/login',
-  [ email_validator, password_validator ],
+  [ email_validator, get_password_validator('password') ],
   async (req, res) => {
     // Check for validation errors
     const errors = validationResult(req);
@@ -210,7 +210,7 @@ authRouter.post(
   '/verify-otp',
   [
     userId_validator,
-    otp_validtor
+    get_otp_validator('otp')
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -322,6 +322,63 @@ app.post(
   }
 );
 
+// --- Reset Password Endpoint ---
+app.post(
+  '/reset-password',
+  [
+    userId_validator,
+    get_otp_validator('resetOTP'),
+    get_password_validator('newPassword')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { userId, resetOTP, newPassword } = req.body;
+
+    try {
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      const userData = userDoc.data();
+      const storedResetOTP = userData.resetOTP;
+      const storedResetOTPExpiry = userData.resetOTPExpiry ? userData.resetOTPExpiry.toDate() : null;
+
+      // Check if OTP exists, matches, and is not expired
+      if (!storedResetOTP || storedResetOTP !== resetOTP || !storedResetOTPExpiry || storedResetOTPExpiry < new Date()) {
+        // Invalidate token immediately to prevent reuse or brute-force
+        // await userDocRef.update({
+        //     resetToken: FieldValue.delete(),
+        //     resetTokenExpiry: FieldValue.delete()
+        // });
+        return res.status(401).json({ message: 'Invalid or expired password reset otp.' });
+      }
+
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const newHashedPassword = await bcrypt.hash(newPassword, salt);
+
+      // Update password and remove reset token fields
+      await userDocRef.update({
+        password: newHashedPassword,
+        resetToken: FieldValue.delete(), // Remove token after successful reset
+        resetTokenExpiry: FieldValue.delete()
+      });
+
+      res.status(200).json({ message: 'Password has been reset successfully.' });
+
+    } catch (error) {
+      console.error('Error during password reset:', error);
+      res.status(500).json({ message: 'Server error during password reset.', error: error.message });
+    }
+  }
+);
 
 
 // --- Authentication Middleware ---

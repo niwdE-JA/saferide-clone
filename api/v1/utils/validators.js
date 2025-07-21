@@ -5,11 +5,13 @@ export const email_validator = body('email')
     .isEmail().withMessage('Please enter a valid email address.')
     .normalizeEmail()
 
-export const password_validator = body('password')
-    .isLength({ min: 8, max: 12 }).withMessage('Password must be at least between 8 and 12 characters long.')
-    .matches(/\d/).withMessage('Password must contain at least one number.')
-    // .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character.'), // Must contain a special character
+export function get_password_validator(fieldName){
+      return body(`${fieldName}`)
+      .isLength({ min: 8, max: 12 }).withMessage(`${fieldName} must be at least between 8 and 12 characters long.`)
+      .matches(/\d/).withMessage(`${fieldName} must contain at least one number.`)
+      // .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage(`${fieldName} must contain at least one special character.`), // Must contain a special character
 
+} 
 export const firstname_validator = body('firstname')
       .trim()
       .notEmpty().withMessage('First name is required.')
@@ -21,8 +23,10 @@ export const lastname_validator = body('lastname')
     //   .isLength({ min: 3, max: 20 }).withMessage('Last name must be between 3 and 20 characters.')
 
 export const userId_validator = body('userId').notEmpty().withMessage('User ID is required.')
-export const otp_validtor = body('otp').notEmpty().withMessage('OTP is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
 
+export function get_otp_validator(fieldName){
+      return body(fieldName).notEmpty().withMessage(`${fieldName} is required.').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.`)
+}
 
 export const guardian_array_count_validator = body('guardians')
       .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.')
