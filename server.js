@@ -11,9 +11,11 @@ const PORT = process.env.PORT || 8080; // listening port
 try {
   const firebaseConfig = {
     projectId: process.env.FIREBASE_PROJECT_ID,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined, // Replace escaped newlines
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\\n/g, '\n') : undefined, // Replace escaped newlines
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   };
+
+  // console.log(process.env.FIREBASE_PRIVATE_KEY.replace(/\\\n/g, '\n'));
 
 
   // Check if all necessary Firebase config variables are set
