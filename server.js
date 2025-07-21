@@ -15,8 +15,8 @@ try {
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   };
 
-  console.log(process.env.FIREBASE_PRIVATE_KEY);
-  console.log("replaced:  ", process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\/g,''));
+  // console.log(process.env.FIREBASE_PRIVATE_KEY);
+  // console.log("replaced:  ", process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\/g,''));
 
 
 
@@ -57,5 +57,5 @@ app.get('/',(req,res)=>{
 //   console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
-const serverless = require('serverless-http');
+import serverless from 'serverless-http';
 module.exports.handler = serverless(app); // This is REQUIRED for Vercel
