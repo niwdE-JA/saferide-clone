@@ -1,10 +1,7 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator, guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator } from '../utils/validators.js';
+import { guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator } from '../utils/validators.js';
 
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { FieldValue } from 'firebase-admin/firestore';
 import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
 

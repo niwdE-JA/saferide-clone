@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { email_validator, password_validator, firstname_validator, lastname_validator, userId_validator, otp_validtor, get_otp_validator, get_password_validator } from '../utils/validators.js';
+import { email_validator, firstname_validator, lastname_validator, userId_validator, get_otp_validator, get_password_validator } from '../utils/validators.js';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -304,7 +304,7 @@ authRouter.post(
 );
 
 // --- Forgot Password Endpoint (Initiator) ---
-app.post(
+authRouter.post(
   '/forgot-password',
   [
     email_validator
@@ -352,7 +352,7 @@ app.post(
 );
 
 // --- Reset Password Endpoint ---
-app.post(
+authRouter.post(
   '/reset-password',
   [
     userId_validator,
