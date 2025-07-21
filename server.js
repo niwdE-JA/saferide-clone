@@ -16,7 +16,7 @@ try {
   };
 
   console.log(process.env.FIREBASE_PRIVATE_KEY);
-  console.log("replaced:  ", process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'));
+  console.log("replaced:  ", process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').replace('\\',''));
 
 
 
