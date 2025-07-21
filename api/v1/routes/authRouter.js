@@ -19,6 +19,7 @@ const transporter = nodemailer.createTransport({
 const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 const _5_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
+const _15_MINUTES_IN_MILLISECONDS = 15 * 60 * 1000;
 const OTP_DURATION = _5_MINUTES_IN_MILLISECONDS;
 
 
@@ -26,6 +27,19 @@ function generateOTP (digits = 6) { // default number of digits is 6
   let max_num = (10**digits) - 1;
   return Math.floor(Math.random() * max_num).toString().padStart(digits,'0');
 };
+
+function generateResetToken() {
+  return crypto.randomBytes(32).toString('hex'); // Generates a 64-character hex string
+};
+
+function sendResetToken(email, resetToken, resetTokenExpiry, userId){
+  console.log(`--- SIMULATED PASSWORD RESET TOKEN SENT ---`);
+  console.log(`To: ${email}`);
+  console.log(`Reset Token: ${resetToken}`);
+  console.log(`Expiry: ${resetTokenExpiry}`);
+  console.log(`User ID for reset: ${userId}`); // User ID might be needed by client for /reset-password
+  console.log(`-------------------------------------------`);
+}
 
 async function sendOTP (otp, email, otp_duration) {
     // Calculate expiration time in minutes for the email message
@@ -256,6 +270,54 @@ authRouter.post(
     } catch (error) {
       console.error('Error during OTP verification:', error);
       res.status(500).json({ message: 'Server error during OTP verification.', error: error.message });
+    }
+  }
+);
+
+// --- Forgot Password Endpoint (Initiator) ---
+app.post(
+  '/forgot-password',
+  [
+    email_validator
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    try {
+      const usersRef = db.collection('users');
+      const userSnapshot = await usersRef.where('email', '==', email).limit(1).get();
+
+      if (userSnapshot.empty) {
+        // For security, always respond with a generic message even if user not found
+        // to prevent email enumeration attacks.
+        return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
+      }
+
+      const userId = userSnapshot.docs[0].id;
+      const userDocRef = usersRef.doc(userId);
+
+      const resetToken = generateResetToken();
+      const resetTokenExpiry = new Date(Date.now() + _15_MINUTES_IN_MILLISECONDS); // Token valid for 15 minutes
+
+      await userDocRef.update({
+        resetToken: resetToken,
+        resetTokenExpiry: Timestamp.fromDate(resetTokenExpiry)
+      });
+
+      sendResetToken(email, resetToken, resetTokenExpiry, userId);
+
+      res.status(200).json({
+        message: 'If a user with that email exists, a password reset link has been sent.',
+      });
+
+    } catch (error) {
+      console.error('Error during forgot password request:', error);
+      res.status(500).json({ message: 'Server error during password reset request.', error: error.message });
     }
   }
 );
