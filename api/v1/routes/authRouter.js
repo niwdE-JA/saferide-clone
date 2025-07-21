@@ -381,7 +381,7 @@ authRouter.post(
         return res.status(200).json({ message: 'Incorrect Email or otp value.' });
       }
 
-      const userId = userSnapshot[0].id;
+      const userId = userSnapshot.docs[0].id;
       const userDocRef = usersRef.doc(userId);
       const userDoc = await userDocRef.get();
 
