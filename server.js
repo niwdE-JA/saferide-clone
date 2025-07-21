@@ -53,6 +53,9 @@ app.get('/',(req,res)=>{
 })
 
 // Run Server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+const serverless = require('serverless-http');
+module.exports.handler = serverless(app); // This is REQUIRED for Vercel
