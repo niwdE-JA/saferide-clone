@@ -318,6 +318,8 @@ authRouter.post(
     const { email } = req.body;
 
     try {
+      const db = req.firestoreDatabase;
+
       const usersRef = db.collection('users');
       const userSnapshot = await usersRef.where('email', '==', email).limit(1).get();
 
@@ -368,6 +370,8 @@ authRouter.post(
     const { userId, resetOTP, newPassword } = req.body;
 
     try {
+      const db = req.firestoreDatabase;
+
       const userDocRef = db.collection('users').doc(userId);
       const userDoc = await userDocRef.get();
 
