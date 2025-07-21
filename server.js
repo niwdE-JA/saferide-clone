@@ -15,7 +15,7 @@ try {
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   };
 
-  console.log(process.env.FIREBASE_PRIVATE_KEY.replace(/\\\n/g, '\n'));
+  console.log(process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'));
 
 
   // Check if all necessary Firebase config variables are set
