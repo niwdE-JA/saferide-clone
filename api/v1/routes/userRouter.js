@@ -182,7 +182,7 @@ userRouter.put(
 userRouter.get(
   '/user',
   authenticateToken,
-  async (res, res) => {
+  async (req, res) => {
     const {userId} =  req.user
 
     try {
