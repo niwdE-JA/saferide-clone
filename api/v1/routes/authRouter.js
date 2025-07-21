@@ -32,7 +32,7 @@ function generateResetToken() {
   return crypto.randomBytes(32).toString('hex'); // Generates a 64-character hex string
 };
 
-function sendResetToken(email, resetToken, resetTokenExpiry, userId){
+function sendResetOTP(email, resetToken, resetTokenExpiry, userId){
   console.log(`--- SIMULATED PASSWORD RESET TOKEN SENT ---`);
   console.log(`To: ${email}`);
   console.log(`Reset Token: ${resetToken}`);
@@ -301,18 +301,18 @@ app.post(
       const userId = userSnapshot.docs[0].id;
       const userDocRef = usersRef.doc(userId);
 
-      const resetToken = generateResetToken();
-      const resetTokenExpiry = new Date(Date.now() + _15_MINUTES_IN_MILLISECONDS); // Token valid for 15 minutes
+      const resetOTP = generateOTP();
+      const resetOTPExpiry = new Date(Date.now() + _15_MINUTES_IN_MILLISECONDS); // Token valid for 15 minutes
 
       await userDocRef.update({
-        resetToken: resetToken,
-        resetTokenExpiry: Timestamp.fromDate(resetTokenExpiry)
+        resetOTP: resetOTP,
+        resetOTPExpiry: Timestamp.fromDate(resetOTPExpiry)
       });
 
-      sendResetToken(email, resetToken, resetTokenExpiry, userId);
+      sendResetOTP(email, resetOTP, resetOTPExpiry, userId);
 
       res.status(200).json({
-        message: 'If a user with that email exists, a password reset link has been sent.',
+        message: 'If a user with that email exists, a password reset code has been sent.',
       });
 
     } catch (error) {
@@ -321,6 +321,7 @@ app.post(
     }
   }
 );
+
 
 
 // --- Authentication Middleware ---
