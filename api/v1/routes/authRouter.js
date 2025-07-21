@@ -357,7 +357,7 @@ authRouter.post(
 authRouter.post(
   '/reset-password',
   [
-    userId_validator,
+    email_validator,
     get_otp_validator('resetOTP'),
     get_password_validator('newPassword')
   ],
@@ -367,12 +367,22 @@ authRouter.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { userId, resetOTP, newPassword } = req.body;
+    const { email, resetOTP, newPassword } = req.body;
 
     try {
       const db = req.firestoreDatabase;
 
-      const userDocRef = db.collection('users').doc(userId);
+      const usersRef = db.collection('users');
+      const userSnapshot = await usersRef.where('email', '==', email).limit(1).get();
+
+      if (userSnapshot.empty) {
+        // For security, always respond with a generic message even if user not found
+        // to prevent email enumeration attacks.
+        return res.status(200).json({ message: 'Incorrect Email or otp value.' });
+      }
+
+      const userId = userSnapshot[0].id;
+      const userDocRef = usersRef.doc(userId);
       const userDoc = await userDocRef.get();
 
       if (!userDoc.exists) {
