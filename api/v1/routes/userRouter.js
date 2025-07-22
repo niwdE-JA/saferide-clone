@@ -17,7 +17,24 @@ function authorizeUserParams(req, res, next){
 
     next();
 }
- 
+
+function sendAlert(guardians){
+  console.log(`--- EMERGENCY ALERT INITIATED by User: ${userId} (${userData.email}) ---`);
+  console.log(`Sending to ${guardians.length} guardians:`);
+
+  // Send alerts to each guardian
+  guardians.forEach(contact => {
+    console.log(`  - To: ${contact.name}`);
+    console.log(`    Phone: ${contact.phoneNumber}`);
+    if (contact.email) {
+      console.log(`    Email: ${contact.email}`);
+    }
+    console.log(`    (Simulated SMS/Email sent to ${contact.name})`);
+  });
+  console.log(`--------------------------------------------------`);
+
+}
+
 // --- Protected Route: Update Guardians ---
 userRouter.put(
   '/:userId/guardians',
@@ -241,7 +258,6 @@ userRouter.get(
   }
 );
 
-
 // --- get preferences ---
 userRouter.get(
   '/:userId/preferences',
@@ -313,6 +329,47 @@ userRouter.get(
       res.status(500).json({ message: 'Server error fetching Privacy Configs.', error: error.message });
     }
 
+  }
+);
+
+// --- send emergency alert ---
+userRouter.post(
+  '/alert',
+  authenticateToken,
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { userId } = req.user;
+
+    try {
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'Authenticated user not found.' });
+      }
+
+      const userData = userDoc.data();
+      const guardians = userData.guardians || [];
+
+      if (guardians.length === 0) {
+        return res.status(400).json({ message: 'No guardians found for this user.' });
+      }
+
+      sendAlert(guardians);
+
+      res.status(200).json({
+        message: 'Emergency alert sent successfully to your guardians.',
+        sentToGuardians: guardians.map(c => ({ name: c.name, phoneNumber: c.phoneNumber, email: c.email })) // Renamed
+      });
+
+    } catch (error) {
+      console.error('Error sending emergency alert:', error);
+      res.status(500).json({ message: 'Server error sending emergency alert.', error: error.message });
+    }
   }
 );
 
