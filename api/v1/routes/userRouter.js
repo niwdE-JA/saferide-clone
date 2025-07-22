@@ -279,5 +279,42 @@ userRouter.get(
   }
 );
 
+// --- get privacy configs ---
+userRouter.get(
+  '/:userId/privacy_config',
+  authenticateToken,
+  async (req, res) => {
+    const {userId} =  req.params;
+
+    try {
+      const db = req.firestoreDatabase;
+
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // get reference to privacy configs doc under User, and assert existence
+      const privacyConfigDocRef = userDocRef.collection('privacy_config').doc('privacy_config');
+      const privacyConfigDocSnapshot = await privacyConfigDocRef.get();
+
+      if (privacyConfigDocSnapshot.exists) {
+        const userPrivacyConfigData = await privacyConfigDocSnapshot.data();
+        
+        res.status(200).json({ message: 'User Privacy Configs fetched successfully.', data: userPrivacyConfigData });
+      } else {
+        console.warn(`Privacy Configs document for user ${userId} does not exist.`);
+        res.status(404).json({ message: 'User Privacy Configs not set.' });
+      };
+
+    } catch (error) {
+      console.error('Error fetching Privacy Configs :', error);
+      res.status(500).json({ message: 'Server error fetching Privacy Configs.', error: error.message });
+    }
+
+  }
+);
+
 
 export default userRouter;
