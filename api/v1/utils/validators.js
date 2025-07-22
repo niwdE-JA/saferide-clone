@@ -67,3 +67,17 @@ export function getOptionalBooleanValidator(fieldName){
         .isBoolean()
         .withMessage(`${fieldName} field must be a boolean (true or false).`)
 }
+
+export function getBooleanValidatorWithFalseDefault(fieldName){
+    return body(`${fieldName}`)
+      .customSanitizer(value => {
+            if (typeof value === 'undefined') {
+                  return false;
+            }
+            // Otherwise, return the value as is for further processing
+            return value;
+      })
+      .toBoolean()
+      .isBoolean()
+      .withMessage(`${fieldName} field must be a boolean (true or false).`);
+}
