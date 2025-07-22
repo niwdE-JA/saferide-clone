@@ -18,19 +18,35 @@ function authorizeUserParams(req, res, next){
     next();
 }
 
-function sendAlert(guardians){
-  console.log(`--- EMERGENCY ALERT INITIATED by User: ${userId} (${userData.email}) ---`);
-  console.log(`Sending to ${guardians.length} guardians:`);
-
-  // Send alerts to each guardian
-  guardians.forEach(contact => {
-    console.log(`  - To: ${contact.name}`);
-    console.log(`    Phone: ${contact.phoneNumber}`);
-    if (contact.email) {
-      console.log(`    Email: ${contact.email}`);
+async function sendAlertToContact (contact, senderEmail, senderName) {
+  const mailOptions = {
+      from: senderEmail,
+      to: contact.email,
+      subject: `EMERGENCY ALERT from ${senderName}`,
+      text: `Hello ${contact.name},\n\n${senderName} has triggered an emergency alert. Please check on them immediately.<\n`,
+      html: `<p>Hello ${contact.name},</p><p><b>${senderName}</b> has triggered an emergency alert.</p><p>Please check on them immediately.</p>`
     }
-    console.log(`    (Simulated SMS/Email sent to ${contact.name})`);
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`    Email sent to ${contact.name} (${contact.email})`);
+    } catch (error) {
+      console.error(`    Failed to send email to ${contact.name} (${contact.email}):`, error.message);
+    }
+}
+
+async function sendAlert(guardians, firstname, lastname){
+  console.log(`--- EMERGENCY ALERT INITIATED by User:  ${firstname} ${lastname}---`);
+  console.log(`Sending to ${guardians.length} guardians:`);
+  const senderName = `${firstname} ${lastname}`
+  
+  // Send alerts to each guardian
+  guardians.forEach(async contact => {
+    sendAlertToContact(contact,
+      senderEmail=process.env.SENDER_EMAIL,
+      senderName=senderName);
   });
+  
   console.log(`--------------------------------------------------`);
 
 }
@@ -361,7 +377,7 @@ userRouter.post(
         return res.status(400).json({ message: 'No guardians found for this user.' });
       }
 
-      sendAlert(guardians);
+      sendAlert(guardians, userData.firstname, userData.lastname);
 
       res.status(200).json({
         message: 'Emergency alert sent successfully to your guardians.',
