@@ -120,7 +120,7 @@ authRouter.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, firstname, lastname, contact_method } = req.body;
+    const { email, password, firstname, lastname } = req.body;
 
     try {
       const db = req.firestoreDatabase;
@@ -150,7 +150,6 @@ authRouter.post(
         password: hashedPassword,
         createdAt: FieldValue.serverTimestamp(), // Timestamp for creation
         otp: otp,
-        contact_method,
         otpExpiry: Timestamp.fromDate(otpExpiry)
 
       });
