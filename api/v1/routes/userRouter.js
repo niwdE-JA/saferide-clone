@@ -231,11 +231,49 @@ userRouter.get(
 
       const userGuardiansData = userDoc.data()?.guardians;
 
-      return res.status(200).json({message: 'Guardins fetched successfully.', data: userGuardiansData});
+      return res.status(200).json({message: 'Guardians fetched successfully.', data: userGuardiansData});
     
     } catch (error) {
       console.error('Error fetching Guardians :', error);
       res.status(500).json({ message: 'Server error fetching Guardians.', error: error.message });
+    }
+
+  }
+);
+
+
+// --- get preferences ---
+userRouter.get(
+  '/:userId/preferences',
+  authenticateToken,
+  async (req, res) => {
+    const {userId} =  req.params;
+
+    try {
+      const db = req.firestoreDatabase;
+
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // get reference to preference doc under User, and assert existence
+      const preferencesDocRef = userDocRef.collection('preferences').doc('preferences');
+      const preferenceDocSnapshot = await preferencesDocRef.get();
+
+      if (preferenceDocSnapshot.exists) {
+        const userPreferenceData = await preferenceDocSnapshot.data();
+        
+        res.status(200).json({ message: 'User Preferences fetched successfully.', data: userPreferenceData });
+      } else {
+        console.warn(`Preferences document for user ${userId} does not exist.`);
+        res.status(404).json({ message: 'User Preferences not set.' });
+      };
+
+    } catch (error) {
+      console.error('Error fetching Preferences :', error);
+      res.status(500).json({ message: 'Server error fetching Preferences.', error: error.message });
     }
 
   }
