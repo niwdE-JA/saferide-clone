@@ -10,8 +10,8 @@ export function get_password_validator(fieldName){
       .isLength({ min: 8, max: 12 }).withMessage(`${fieldName} must be at least between 8 and 12 characters long.`)
       .matches(/\d/).withMessage(`${fieldName} must contain at least one number.`)
       // .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage(`${fieldName} must contain at least one special character.`), // Must contain a special character
+}
 
-} 
 export const firstname_validator = body('firstname')
       .trim()
       .notEmpty().withMessage('First name is required.')

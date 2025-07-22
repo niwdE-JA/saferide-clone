@@ -6,7 +6,7 @@ import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
 
 const userRouter = Router();
-const JWT_SECRET = process.env.JWT_SECRET;
+// const JWT_SECRET = process.env.JWT_SECRET;
 
 
 // middleware for comparing userid in params and jwt
@@ -208,6 +208,34 @@ userRouter.get(
     } catch (error) {
       console.error('Error fetching user :', error);
       res.status(500).json({ message: 'Server error fetching user.', error: error.message });
+    }
+
+  }
+);
+
+// --- get guardians ---
+userRouter.get(
+  '/:userId/guardians',
+  authenticateToken,
+  async (req, res) => {
+    const {userId} =  req.params
+
+    try {
+      const db = req.firestoreDatabase;
+
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      const userGuardiansData = userDoc.data()?.guardians;
+
+      return res.status(200).json({message: 'Guardins fetched successfully.', data: userGuardiansData});
+    
+    } catch (error) {
+      console.error('Error fetching Guardians :', error);
+      res.status(500).json({ message: 'Server error fetching Guardians.', error: error.message });
     }
 
   }
