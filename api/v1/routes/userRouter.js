@@ -345,6 +345,8 @@ userRouter.post(
     const { userId } = req.user;
 
     try {
+      const db = req.firestoreDatabase;
+
       const userDocRef = db.collection('users').doc(userId);
       const userDoc = await userDocRef.get();
 
