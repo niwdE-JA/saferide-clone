@@ -246,7 +246,7 @@ userRouter.get(
         return res.status(404).json({ message: 'User not found.' });
       }
 
-      const userGuardiansData = userDoc.data()?.guardians;
+      const userGuardiansData = userDoc.data()?.guardians || [];
 
       return res.status(200).json({message: 'Guardians fetched successfully.', data: userGuardiansData});
     
