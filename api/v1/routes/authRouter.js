@@ -276,7 +276,7 @@ authRouter.post(
       const token = jwt.sign(
         { userId: userId, email: userData.email },
         JWT_SECRET,
-        { expiresIn: '1h' }
+        // { expiresIn: '1h' }
       );
 
       // Clear OTP from Firestore after successful verification
