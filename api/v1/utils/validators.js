@@ -41,6 +41,11 @@ export const guardian_lastname_validator = body('guardians.*.lastname')
       .notEmpty().withMessage('Guardian lastname is required.')
       .isString().withMessage('Guardian lastname must be a string.')
 
+export const guardian_contact_method_validator = body('guardians.*.contact_method')
+      .trim()
+      .notEmpty().withMessage('Guardian contact method is required.')
+      .isString().withMessage('Guardian contact method must be a string.')
+      .isIn(['sms', 'email', 'app']).withMessage('Guardian contact method must be "sms", "email", or "app".');
 
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;

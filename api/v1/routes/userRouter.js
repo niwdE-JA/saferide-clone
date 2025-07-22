@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator } from '../utils/validators.js';
+import { guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator, guardian_contact_method_validator } from '../utils/validators.js';
 
 import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
@@ -46,7 +46,7 @@ async function sendAlert(guardians, firstname, lastname){
       senderEmail=process.env.SENDER_EMAIL,
       senderName=senderName);
   });
-  
+
   console.log(`--------------------------------------------------`);
 
 }
@@ -62,6 +62,8 @@ userRouter.put(
     guardian_lastname_validator,
     guardian_phone_validator,
     guardian_email_validator,
+    guardian_contact_method_validator,
+    getOptionalBooleanValidator('share_location')
   ],
 
   async (req, res) => {
