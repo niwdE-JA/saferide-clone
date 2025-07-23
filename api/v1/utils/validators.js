@@ -43,9 +43,7 @@ export const guardian_lastname_validator = body('guardians.*.lastname')
 
 const ALLOWED_CONTACT_METHODS = ['sms', 'email', 'app'];
 export const guardian_contact_method_validator = body('guardians.*.contact_method')
-  // 1. Ensure it's an array
   .isArray({ min: 1 }).withMessage('Guardian contact method must be an array with at least one element.')
-  // 2. Custom validation for each element in the array
   .custom((value, { req, location, path }) => {
     // 'value' here is the array itself (e.g., ['sms', 'email'])
     if (!Array.isArray(value)) {
@@ -64,6 +62,15 @@ export const guardian_contact_method_validator = body('guardians.*.contact_metho
     }
     return true; // If all checks pass, return true
   });
+
+const ALLOWED_GUARDIAN_IDS = ['guardian_1', 'guardian_2','guardian_3'];
+export const guardian_id_validator = body('guardians.*.id')
+  .notEmpty().withMessage('Guardian ID is required.')
+  .isString().withMessage('Guardian ID must be a string.')
+  .isIn(ALLOWED_GUARDIAN_IDS).withMessage(
+    `Guardian ID must be one of: ${ALLOWED_GUARDIAN_IDS.join(', ')}.`
+  );
+
 
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;

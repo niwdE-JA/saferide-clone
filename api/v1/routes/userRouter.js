@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
-import { guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator, guardian_contact_method_validator, getBooleanValidatorWithFalseDefault } from '../utils/validators.js';
+import { guardian_array_count_validator, guardian_firstname_validator, guardian_lastname_validator, guardian_phone_validator, guardian_email_validator, getOptionalBooleanValidator, guardian_contact_method_validator, getBooleanValidatorWithFalseDefault, guardian_id_validator } from '../utils/validators.js';
 
 import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
@@ -93,6 +93,7 @@ userRouter.put(
     guardian_phone_validator,
     guardian_email_validator,
     guardian_contact_method_validator,
+    guardian_id_validator,
     getBooleanValidatorWithFalseDefault('guardians.*.share_location')
   ],
 
