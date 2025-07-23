@@ -458,11 +458,56 @@ userRouter.post(
   }
 );
 
+// --- Protected Route: Delete Guardian ---
 userRouter.delete(
-  '/guardians/:guardianId',
+  '/:userId/guardians/:guardianId',
   authenticateToken,
-  async (req, res) =>{
-    res.status(200).send(req.params.guardianId);
+  authorizeUserParams,
+  async (req, res) => {
+    const { userId, guardianId } = req.params;
+
+    try {
+      const db = req.firestoreDatabase;
+      
+      // Get a reference to the user's document and assert user existence
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // Get the current list of guardians from the user's document
+      const userData = userDoc.data();
+      let currentGuardians = userData.guardians || [];
+
+      // Find the index of the guardian to be deleted
+      const guardianIndexToDelete = currentGuardians.findIndex(
+        guardian => guardian.id === guardianId
+      );
+
+      // Check if the guardian was found
+      if (guardianIndexToDelete === -1) {
+        return res.status(404).json({ message: 'Guardian not found for this user.' });
+      }
+
+      // Remove the guardian from the array
+      const deletedGuardian = currentGuardians.splice(guardianIndexToDelete, 1); // splice returns an array of deleted elements
+
+      // Update the user document in Firestore with the modified array of guardians
+      await userDocRef.update({
+        guardians: currentGuardians
+      }, { ignoreUndefinedProperties: true });
+
+      return res.status(200).json({
+        message: 'Guardian deleted successfully.',
+        deletedGuardianId: guardianId,
+        currentGuardians
+      });
+
+    } catch (error) {
+      console.error(`Error deleting guardian ${guardianId} for user ${userId}:`, error);
+      return res.status(500).json({ message: 'Failed to delete guardian.', error: error.message });
+    }
   }
 );
 
