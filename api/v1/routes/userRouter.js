@@ -370,7 +370,7 @@ userRouter.get(
         res.status(200).json({ message: 'User Privacy Configs fetched successfully.', data: fillDefaults(userPrivacyConfigData) });
       } else {
         console.warn(`Privacy Configs document for user ${userId} does not exist.`);
-        res.status(404).json({ message: 'Fetched default Privacy Configs.', data: DEFAULT_PRIVACY_CONFIG });
+        res.status(200).json({ message: 'Fetched default Privacy Configs.', data: DEFAULT_PRIVACY_CONFIG });
       };
 
     } catch (error) {
@@ -424,5 +424,12 @@ userRouter.post(
   }
 );
 
+userRouter.delete(
+  '/guardians/:guardianId',
+  authenticateToken,
+  async (req, res) =>{
+    res.status(200).send(req.params.guardianId);
+  }
+);
 
 export default userRouter;
