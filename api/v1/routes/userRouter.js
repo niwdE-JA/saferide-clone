@@ -13,6 +13,11 @@ const DEFAULT_PREFERENCE = {
   'emergencyAlerts': true,
   'driverVerification': false,
 }
+const DEFAULT_PRIVACY_CONFIG = {
+  'dataSharing': false,
+  'videoRetention': false,
+  'nightMode': false,
+}
 
 function fillDefaults (default_object, current_object){
   return { ...default_object, ...current_object };
@@ -194,7 +199,7 @@ userRouter.put(
     const { userId } = req.params;
     const { dataSharing, videoRetention, nightMode } = req.body;
 
-    const updates = { dataSharing, videoRetention, nightMode };
+    const updates = removeUndefinedFields({ dataSharing, videoRetention, nightMode });
 
     try {
       const db = req.firestoreDatabase;
@@ -352,10 +357,10 @@ userRouter.get(
       if (privacyConfigDocSnapshot.exists) {
         const userPrivacyConfigData = await privacyConfigDocSnapshot.data();
         
-        res.status(200).json({ message: 'User Privacy Configs fetched successfully.', data: userPrivacyConfigData });
+        res.status(200).json({ message: 'User Privacy Configs fetched successfully.', data: fillDefaults(userPrivacyConfigData) });
       } else {
         console.warn(`Privacy Configs document for user ${userId} does not exist.`);
-        res.status(404).json({ message: 'User Privacy Configs not set.' });
+        res.status(404).json({ message: 'Fetched default Privacy Configs.', data: DEFAULT_PRIVACY_CONFIG });
       };
 
     } catch (error) {
