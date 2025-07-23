@@ -18,6 +18,12 @@ function fillDefaults (default_object, current_object){
   return { ...default_object, ...current_object };
 }
 
+function removeUndefinedFields(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => typeof value !== 'undefined')
+  );
+}
+
 
 // middleware for comparing userid in params and jwt
 function authorizeUserParams(req, res, next){
@@ -133,7 +139,7 @@ userRouter.put(
     const { userId } = req.params;
     const { dashcam, cloudUpload, emergencyAlerts, driverVerification } = req.body;
 
-    const updates = { dashcam, cloudUpload, emergencyAlerts, driverVerification }
+    const updates = removeUndefinedFields({ dashcam, cloudUpload, emergencyAlerts, driverVerification })
 
     try {
       const db = req.firestoreDatabase;
