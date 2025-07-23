@@ -15,12 +15,22 @@ export function get_password_validator(fieldName){
 export const firstname_validator = body('firstname')
       .trim()
       .notEmpty().withMessage('First name is required.')
+      .isString().withMessage('First name must be a string.')
     //   .isLength({ min: 3, max: 20 }).withMessage('First name must be between 3 and 20 characters.')
 
 export const lastname_validator = body('lastname')
       .trim()
       .notEmpty().withMessage('Last name is required.')
+      .isString().withMessage('Last name must be a string.')
     //   .isLength({ min: 3, max: 20 }).withMessage('Last name must be between 3 and 20 characters.')
+
+// Define the E.164 regex
+const e164Regex = /^\+[1-9]\d{1,14}$/;
+export const phone_validator = body('phone')
+        .trim()
+        .notEmpty().withMessage('Phone number is required.')
+        // Custom validation using the E.164 regex
+        .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).')
 
 export const userId_validator = body('userId').notEmpty().withMessage('User ID is required.')
 
@@ -28,21 +38,9 @@ export function get_otp_validator(fieldName){
       return body(fieldName).notEmpty().withMessage(`${fieldName} is required.`).isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits long.')
 }
 
-export const guardian_array_count_validator = body('guardians')
-      .isArray({ max: 3 }).withMessage('Guardians must be an array with a maximum of 3 entries.')
-
-export const guardian_firstname_validator = body('guardians.*.firstname')
-      .trim()
-      .notEmpty().withMessage('Guardian firstname is required.')
-      .isString().withMessage('Guardian firstname must be a string.')
-
-export const guardian_lastname_validator = body('guardians.*.lastname')
-      .trim()
-      .notEmpty().withMessage('Guardian lastname is required.')
-      .isString().withMessage('Guardian lastname must be a string.')
 
 const ALLOWED_CONTACT_METHODS = ['sms', 'email', 'app'];
-export const guardian_contact_method_validator = body('guardians.*.contact_method')
+export const guardian_contact_method_validator = body('contact_method')
   .isArray({ min: 1 }).withMessage('Guardian contact method must be an array with at least one element.')
   .custom((value, { req, location, path }) => {
     // 'value' here is the array itself (e.g., ['sms', 'email'])
@@ -62,28 +60,6 @@ export const guardian_contact_method_validator = body('guardians.*.contact_metho
     }
     return true; // If all checks pass, return true
   });
-
-const ALLOWED_GUARDIAN_IDS = ['guardian_1', 'guardian_2','guardian_3'];
-export const guardian_id_validator = body('guardians.*.id')
-  .notEmpty().withMessage('Guardian ID is required.')
-  .isString().withMessage('Guardian ID must be a string.')
-  .isIn(ALLOWED_GUARDIAN_IDS).withMessage(
-    `Guardian ID must be one of: ${ALLOWED_GUARDIAN_IDS.join(', ')}.`
-  );
-
-
-// Define the E.164 regex
-const e164Regex = /^\+[1-9]\d{1,14}$/;
-export const guardian_phone_validator = body('guardians.*.phone')
-        .trim()
-        .notEmpty().withMessage('Guardian phone number is required.')
-        // Custom validation using the E.164 regex
-        .matches(e164Regex).withMessage('Invalid phone number format. Must be in E.164 format (e.g., +12025550123).')
-
-export const guardian_email_validator = body('guardians.*.email')
-      .optional({ checkFalsy: true })
-      .isEmail().withMessage('Invalid email format for contact.')
-      .normalizeEmail()
 
 export function getOptionalBooleanValidator(fieldName){
     return body(`${fieldName}`)
