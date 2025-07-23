@@ -64,8 +64,8 @@ async function sendAlert(guardians, firstname, lastname){
   // Send alerts to each guardian
   guardians.forEach(async contact => {
     sendAlertToContact(contact,
-      senderEmail=process.env.SENDER_EMAIL,
-      senderName=senderName);
+      process.env.SENDER_EMAIL,
+      senderName);
   });
 
   console.log(`--------------------------------------------------`);
