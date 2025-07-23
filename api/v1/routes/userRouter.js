@@ -5,6 +5,7 @@ import { getOptionalBooleanValidator, guardian_contact_method_validator, getBool
 import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
 import nodemailer from 'nodemailer';
+import { v4 as uuidv4 } from 'uuid';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -102,31 +103,66 @@ userRouter.put(
     }
 
     const { userId } = req.params;
-    const { guardians } = req.body;
+    const {
+      firstname,
+      lastname,
+      phone,
+      email,
+      contact_method,
+      share_location
+    } = req.body;
+
+    // A unique ID for the new guardian
+    const guardianId = uuidv4();
 
     try {
       const db = req.firestoreDatabase;
-        
+      
       // Get a reference to the user's document
       const userDocRef = db.collection('users').doc(userId);
-
-      // Check if the user document exists
       const userDoc = await userDocRef.get();
+
+      // Assert user existence
       if (!userDoc.exists) {
         return res.status(404).json({ message: 'User not found.' });
       }
 
-      // Update the guardians field in Firestore
-      await userDocRef.update({ guardians: guardians });
+      // Get the current list of guardians from the user's document
+      // If 'guardians' field doesn't exist, initialize as an empty array
+      const userData = userDoc.data();
+      let currentGuardians = userData.guardians || [];
 
-      res.status(200).json({
-        message: 'Guardians updated successfully!',
-        guardians,
+      // Check if the maximum number of guardians has been reached
+      if (currentGuardians.length >= 3) {
+        return res.status(400).json({ message: 'Maximum of 3 guardians allowed. Please remove an existing guardian to add a new one.' });
+      }
+
+      // Create the new guardian object with its own unique ID
+      const newGuardian = {
+        id: guardianId, // Unique ID for this specific guardian
+        firstname,
+        lastname,
+        phone,
+        email,
+        contact_method, // This should be the array of strings validated by guardian_contact_method_validator
+        share_location,
+      };
+
+      // Add the new guardian to the existing list
+      currentGuardians.push(newGuardian);
+
+      // Update the user document in Firestore with the new array of guardians
+      await userDocRef.update({
+        guardians: currentGuardians
+      }, { ignoreUndefinedProperties: true });
+
+      return res.status(201).json({
+        message: 'Guardian added successfully.',
+        currentGuardians
       });
-
     } catch (error) {
-      console.error('Error updating emergency contacts:', error);
-      res.status(500).json({ message: 'Server error updating emergency contacts.', error: error.message });
+      console.error('Error updating Guardians:', error);
+      res.status(500).json({ message: 'Server error updating Guardians.', error: error.message });
     }
   }
 );
