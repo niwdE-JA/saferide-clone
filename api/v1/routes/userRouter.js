@@ -7,6 +7,16 @@ import { authenticateToken } from './authRouter.js';
 
 const userRouter = Router();
 // const JWT_SECRET = process.env.JWT_SECRET;
+const DEFAULT_PREFERENCE = {
+  'dashcam': false,
+  'cloudUpload': false,
+  'emergencyAlerts': true,
+  'driverVerification': false,
+}
+
+function fillDefaults (default_object, current_object){
+  return { ...default_object, ...current_object };
+}
 
 
 // middleware for comparing userid in params and jwt
@@ -299,10 +309,10 @@ userRouter.get(
       if (preferenceDocSnapshot.exists) {
         const userPreferenceData = await preferenceDocSnapshot.data();
         
-        res.status(200).json({ message: 'User Preferences fetched successfully.', data: userPreferenceData });
+        res.status(200).json({ message: 'User Preferences fetched successfully.', data: fillDefaults(DEFAULT_PREFERENCE, userPreferenceData )});
       } else {
-        console.warn(`Preferences document for user ${userId} does not exist.`);
-        res.status(404).json({ message: 'User Preferences not set.' });
+        console.warn(`Preferences document for user ${userId} does not exist. Returning default.`);
+        res.status(200).json({ message: 'Fetched Default User Preferences.', data: DEFAULT_PREFERENCE });
       };
 
     } catch (error) {
