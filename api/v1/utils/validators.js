@@ -41,11 +41,29 @@ export const guardian_lastname_validator = body('guardians.*.lastname')
       .notEmpty().withMessage('Guardian lastname is required.')
       .isString().withMessage('Guardian lastname must be a string.')
 
+const ALLOWED_CONTACT_METHODS = ['sms', 'email', 'app'];
 export const guardian_contact_method_validator = body('guardians.*.contact_method')
-      .trim()
-      .notEmpty().withMessage('Guardian contact method is required.')
-      .isString().withMessage('Guardian contact method must be a string.')
-      .isIn(['sms', 'email', 'app']).withMessage('Guardian contact method must be "sms", "email", or "app".');
+  // 1. Ensure it's an array
+  .isArray({ min: 1 }).withMessage('Guardian contact method must be an array with at least one element.')
+  // 2. Custom validation for each element in the array
+  .custom((value, { req, location, path }) => {
+    // 'value' here is the array itself (e.g., ['sms', 'email'])
+    if (!Array.isArray(value)) {
+      throw new Error('Guardian contact method must be an array.');
+    }
+
+    for (const method of value) {
+      // Ensure each method is a string
+      if (typeof method !== 'string') {
+        throw new Error(`Each contact method in the array must be a string.`);
+      }
+      // Ensure each method is one of the allowed values
+      if (!ALLOWED_CONTACT_METHODS.includes(method)) {
+        throw new Error(`Invalid contact method: "${method}". Allowed methods are ${ALLOWED_CONTACT_METHODS.join(', ')}.`);
+      }
+    }
+    return true; // If all checks pass, return true
+  });
 
 // Define the E.164 regex
 const e164Regex = /^\+[1-9]\d{1,14}$/;
