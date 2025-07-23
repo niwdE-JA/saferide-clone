@@ -4,6 +4,15 @@ import { guardian_array_count_validator, guardian_firstname_validator, guardian_
 
 import 'dotenv/config';
 import { authenticateToken } from './authRouter.js';
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SENDER_EMAIL,
+        pass: process.env.SENDER_EMAIL_PASSWORD
+    }
+});
 
 const userRouter = Router();
 // const JWT_SECRET = process.env.JWT_SECRET;
@@ -44,16 +53,16 @@ async function sendAlertToContact (contact, senderEmail, senderName) {
       from: senderEmail,
       to: contact.email,
       subject: `EMERGENCY ALERT from ${senderName}`,
-      text: `Hello ${contact.name},\n\n${senderName} has triggered an emergency alert. Please check on them immediately.<\n`,
-      html: `<p>Hello ${contact.name},</p><p><b>${senderName}</b> has triggered an emergency alert.</p><p>Please check on them immediately.</p>`
+      text: `Hello ${contact.firstname},\n\n${senderName} has triggered an emergency alert. Please check on them immediately.<\n`,
+      html: `<p>Hello ${contact.firstname},</p><p><b>${senderName}</b> has triggered an emergency alert.</p><p>Please check on them immediately.</p>`
     }
 
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`    Email sent to ${contact.name} (${contact.email})`);
-    } catch (error) {
-      console.error(`    Failed to send email to ${contact.name} (${contact.email}):`, error.message);
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`    Email sent to ${contact.firstname} (${contact.email})`);
+  } catch (error) {
+    console.error(`    Failed to send email to ${contact.firstname} (${contact.email}):`, error.message);
+  }
 }
 
 async function sendAlert(guardians, firstname, lastname){
