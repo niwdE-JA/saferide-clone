@@ -85,7 +85,7 @@ async function sendAlert(guardians, firstname, lastname){
 // --- Protected Route: Update Guardians ---
 userRouter.put(
   '/:userId/guardians',
-  authenticateToken, // Protect this route with JWT authentication
+  authenticateToken,
   authorizeUserParams,
   [
     firstname_validator,
@@ -166,6 +166,96 @@ userRouter.put(
     }
   }
 );
+
+// --- Protected Route: Update specific guardian by Id ---
+userRouter.put(
+  '/:userId/guardians/:guardianId',
+  authenticateToken,
+  authorizeUserParams,
+  [
+    firstname_validator,
+    lastname_validator,
+    phone_validator,
+    email_validator,
+    guardian_contact_method_validator,
+    getBooleanValidatorWithFalseDefault('share_location')
+  ],
+
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { userId } = req.params;
+    const {
+      firstname,
+      lastname,
+      phone,
+      email,
+      contact_method,
+      share_location
+    } = req.body;
+
+    // extract Id from params
+    const {guardianId} = req.params;
+
+    try {
+      const db = req.firestoreDatabase;
+      
+      // Get a reference to the user's document
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+
+      // Assert user existence
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // Get the current list of guardians from the user's document
+      // If 'guardians' field doesn't exist, initialize as an empty array
+      const userData = userDoc.data();
+      let currentGuardians = userData.guardians || [];
+
+      // Check if the guardianId exists in the list
+      if ( ! currentGuardians.some(guardian => guardian.id === guardianId)) {
+        return res.status(404).json({ message: 'no guardian found with that id.' });
+      }
+
+      // change matching gurdian to new guardian object
+      const updatedGuardianData = {
+        firstname,
+        lastname,
+        phone,
+        email,
+        contact_method, // This should be the array of strings validated by guardian_contact_method_validator
+        share_location,
+      };
+
+      const updatedGuardians = currentGuardians.map(guardian=>{
+        if (guardian.id === guardianId){
+          return { ...guardian, ...updatedGuardianData };
+        } else {
+          return guardian;
+        }
+      });
+
+      // Update the user document in Firestore with the new array of guardians
+      await userDocRef.update({
+        guardians: updatedGuardians
+      }, { ignoreUndefinedProperties: true });
+
+      return res.status(201).json({
+        message: 'Guardian updated successfully.',
+        updatedGuardians
+      });
+    } catch (error) {
+      console.error('Error updating Guardian :', error);
+      res.status(500).json({ message: 'Server error updating Guardian.', error: error.message });
+    }
+  }
+);
+
 
 // --- Protected Route: Update user preferences ---
 userRouter.put(
