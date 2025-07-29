@@ -536,9 +536,32 @@ userRouter.post(
 
       sendAlert(guardians, userData.firstname, userData.lastname);
 
+      // Log alerts in Firestore under /users/{userId}/alerts/{alert_id}
+      const alertId = uuidv4();
+      const timestamp = new Date().toISOString();
+      const alertLog = {
+        alertId,
+        timestamp,
+        sentToGuardians: guardians.map(g => ({
+          id: g.id,
+          firstname: g.firstname,
+          lastname: g.lastname,
+          phone: g.phone,
+          email: g.email,
+          contact_method: g.contact_method,
+          share_location: g.share_location
+        }))
+      };
+      await userDocRef.collection('alerts').doc(alertId).set(alertLog);
+
       res.status(200).json({
         message: 'Emergency alert sent successfully to your guardians.',
-        sentToGuardians: guardians.map(c => ({ name: c.name, phoneNumber: c.phoneNumber, email: c.email })) // Renamed
+        sentToGuardians: guardians.map(c => ({
+          firstname: c.firstname,
+          lastname: c.lastname,
+          phone: c.phone,
+          email: c.email
+        }))
       });
 
     } catch (error) {
