@@ -60,54 +60,63 @@ rideRouter.get(
         }
 );
 
-rideRouter.get('/uber/callback',
-    // authenticateToken,
+rideRouter.get(
+    '/uber/callback',
     async (req, res) => {
-    const authorizationCode = req.query.code;
-    const state = req.query.state;
+        const authorizationCode = req.query.code;
+        const state = req.query.state;
 
-    res.status(200).send(state)
+        if (!authorizationCode) {
+            return res.status(400).json({ error: 'Authorization code not received.' });
+        }
 
-    if (!authorizationCode) {
-        return res.status(400).json({ error: 'Authorization code not received.' });
-    }
+        try {
+            // Exchange the authorization code for an access token
+            const tokenResponse = await axios.post(UBER_TOKEN_URL, new URLSearchParams({
+                client_id: UBER_CLIENT_ID,
+                client_secret: UBER_CLIENT_SECRET,
+                grant_type: 'authorization_code',
+                redirect_uri: UBER_REDIRECT_URI,
+                code: authorizationCode
+            }).toString(), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
 
-    console.log("authorizationCode : ", authorizationCode);
+            const { access_token, refresh_token, expires_in } = tokenResponse.data;
 
-    try {
-        // Exchange the authorization code for an access token
-        const tokenResponse = await axios.post(UBER_TOKEN_URL, new URLSearchParams({
-            client_id: UBER_CLIENT_ID,
-            client_secret: UBER_CLIENT_SECRET,
-            grant_type: 'authorization_code',
-            redirect_uri: UBER_REDIRECT_URI,
-            code: authorizationCode
-        }).toString(), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+            const userUberTokens = {
+                accessToken: access_token,
+                refreshToken: refresh_token,
+                expiresIn: expires_in,
+                timestamp: Date.now()
+            };
+
+            // get userId from firebase database using the state uuid
+            const db = req.firestoreDatabase;
+            const userDoc = await db.collection('users').where('uberAuthState', '==', state).limit(1).get();
+            if (userDoc.empty) {
+                return res.status(404).json({ error: 'User not found.' });
             }
-        });
 
-        const { access_token, refresh_token, expires_in } = tokenResponse.data;
+            const userId = userDoc.docs[0].id;
 
-        const userUberTokens = {
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            expiresIn: expires_in,
-            timestamp: Date.now()
-        };
+            // Store the tokens in the user's database
+            await db.collection('users').doc(userId).set({ uberTokens: userUberTokens }, { merge: true });
 
-        res.status(200).json({ message: 'Uber authentication successful.', userUberTokens });
+            res.status(200).json({ message: 'Uber authentication successful.', userUberTokens });
 
-    } catch (error) {
-        console.error('Error exchanging authorization code for token:', error.response ? error.response.data : error.message);
-        
-        res.status(500).json({
-            error: 'Failed to obtain access token.',
-            details: error.response ? error.response.data : error.message
-        });
+        } catch (error) {
+            console.error('Error exchanging authorization code for token:', error.response ? error.response.data : error.message);
+            
+            res.status(500).json({
+                error: 'Failed to obtain access token.',
+                details: error.response ? error.response.data : error.message
+            });
+        }
     }
-});
+);
 
 
 rideRouter.get('/uber/profile',
