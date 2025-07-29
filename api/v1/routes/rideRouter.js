@@ -20,6 +20,7 @@ const UBER_TOKEN_URL = `${UBER_API_BASE_URL}/token`;
 
 rideRouter.get(
     '/uber/auth-url',
+    authenticateToken,
     (req, res) => {
     const authUrl = `${UBER_AUTHORIZE_URL}?` +
         `client_id=${UBER_CLIENT_ID}&` +
