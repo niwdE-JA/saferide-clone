@@ -18,7 +18,9 @@ const UBER_AUTHORIZE_URL = `${UBER_API_BASE_URL}/authorize`;
 const UBER_TOKEN_URL = `${UBER_API_BASE_URL}/token`;
 
 
-rideRouter.get('/uber/auth-url', (req, res) => {
+rideRouter.get(
+    '/uber/auth-url',
+    (req, res) => {
     const authUrl = `${UBER_AUTHORIZE_URL}?` +
         `client_id=${UBER_CLIENT_ID}&` +
         `response_type=code&` +
@@ -29,12 +31,13 @@ rideRouter.get('/uber/auth-url', (req, res) => {
     res.status(200).json({ message: "generated Uber authorization url ", authUrl: authUrl });
 });
 
-rideRouter.get('/uber/callback', async (req, res) => {
+rideRouter.get('/uber/callback',
+    authenticateToken,
+    async (req, res) => {
     const authorizationCode = req.query.code;
-    const state = req.query.state; // If you implemented a state parameter
+    const state = req.query.state;
 
     if (!authorizationCode) {
-        // In a real app, you'd redirect to a frontend error page or return a JSON error.
         return res.status(400).json({ error: 'Authorization code not received.' });
     }
 
@@ -59,23 +62,16 @@ rideRouter.get('/uber/callback', async (req, res) => {
 
         const { access_token, refresh_token, expires_in } = tokenResponse.data;
 
-        const mockUserId = 'user123'; // Replace with actual user ID from your authentication system
-        const userTokens = {
+        const {userId} = req.user;
+        const userUberTokens = {
             accessToken: access_token,
             refreshToken: refresh_token,
             expiresIn: expires_in,
             timestamp: Date.now() // Store timestamp for token expiry checks
         };
 
-        console.log(`Tokens for ${mockUserId}:`);
-        console.log('Access Token:', access_token);
-        console.log('Refresh Token:', refresh_token);
-        console.log('Expires In:', expires_in, 'seconds');
-
-        // After successful token exchange, redirect the user back to your frontend application.
-        // You might pass a success/failure status or user ID as query parameters.
-        // Example: res.redirect('http://your-frontend-app.com/dashboard?uber_auth=success');
-        res.status(200).json({ message: 'Uber authentication successful. Tokens stored (in-memory for demo).', userId: mockUserId });
+        // console.log(`Tokens for ${userId}: `, userUberTokens);        
+        res.status(200).json({ message: 'Uber authentication successful.', userUberTokens });
 
     } catch (error) {
         console.error('Error exchanging authorization code for token:', error.response ? error.response.data : error.message);
