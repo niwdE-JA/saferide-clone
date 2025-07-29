@@ -121,16 +121,31 @@ rideRouter.get(
 
 rideRouter.get('/uber/profile',
     authenticateToken,
-    // authenticateUberTokens, // Middleware to ensure user has valid Uber tokens
     async (req, res) => {
         // basic user profile information from the uber api and storing it in a firebase document under user
         try {
-            const accessToken = req.userUberTokens?.accessToken;
+            const { userId } = req.user;
+            const db = req.firestoreDatabase;
+
+            // get user document from firebase and assert existence
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: 'User not found.' });
+            }
+
+            // get the user's uber access token from the user document
+            const userData = userDoc.data();
+
+            if (!userData.uberTokens?.accessToken) {
+                return res.status(401).json({ error: 'Uber access token not found for user.' });
+            }
+
+            const accessToken = userData.uberTokens.accessToken;
             if (!accessToken) {
                 return res.status(401).json({ error: 'Uber access token not found for user.' });
             }
 
-            const profileResponse = await axios.get(`${UBER_API_BASE_URL}/v1.2/me`, {
+            const profileResponse = await axios.get(`https://sandbox-api.uber.com/v2/me`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
