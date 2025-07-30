@@ -561,6 +561,53 @@ userRouter.post(
   }
 );
 
+// --- escalate alert ---
+userRouter.post(
+  '/alert/:alertId/escalate',
+  authenticateToken,
+  async (req, res) => {
+    const { alertId } = req.params;
+    const { userId } = req.user;
+    
+    // Escalation flag stored in alert metadata (escalated: true)
+    // SET the escalated flag under alert log to true
+    try {
+      const db = req.firestoreDatabase;
+
+      // Get a reference to the user's document
+      const userDocRef = db.collection('users').doc(userId);
+      const userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        return res.status(404).json({ message: 'Authenticated user not found.' });
+      }
+
+      // Get the alert document
+      const alertDocRef = userDocRef.collection('alerts').doc(alertId);
+      const alertDoc = await alertDocRef.get();
+
+      if (!alertDoc.exists) {
+        return res.status(404).json({ message: 'Alert not found.' });
+      }
+
+      // Update the alert document to set escalated flag to true
+      await alertDocRef.update({
+        escalated: true,
+        escalationTimestamp: new Date().toISOString()
+      });
+
+      res.status(200).json({
+        message: 'Alert escalated successfully.',
+        alertId,
+        escalated: true
+      });
+    } catch (error) {
+      console.error(`Error escalating alert`, error);
+      return res.status(500).json({ message: 'Failed to escalate alert.', error: error.message });
+    }
+  }
+)
+
 // --- Protected Route: Delete Guardian ---
 userRouter.delete(
   '/:userId/guardians/:guardianId',
