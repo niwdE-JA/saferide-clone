@@ -145,7 +145,7 @@ rideRouter.get('/uber/profile',
                 return res.status(401).json({ error: 'Uber access token not found for user.' });
             }
 
-            const profileResponse = await axios.get(`https://sandbox-api.uber.com/v2/me`, {
+            const profileResponse = await axios.get(`https://sandbox-api.uber.com/v1.2/me`, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
