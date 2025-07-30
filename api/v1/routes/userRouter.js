@@ -551,12 +551,7 @@ userRouter.post(
 
       res.status(200).json({
         message: 'Emergency alert sent successfully to your guardians.',
-        sentToGuardians: guardians.map(c => ({
-          firstname: c.firstname,
-          lastname: c.lastname,
-          phone: c.phone,
-          email: c.email
-        }))
+        alertLog: alertLog
       });
 
     } catch (error) {
